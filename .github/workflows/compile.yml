@@ -21,13 +21,10 @@ jobs:
 
       - name: Compile all chapters
         run: |
-          failed=0
           for dir in chapter-*/; do
             echo "=== Compiling $dir ==="
-            pdflatex -interaction=nonstopmode -output-directory="$dir" "${dir}main.tex" || { echo "FAILED: $dir"; failed=1; }
-            pdflatex -interaction=nonstopmode -output-directory="$dir" "${dir}main.tex" || true
+            (cd "$dir" && pdflatex -interaction=nonstopmode main.tex && pdflatex -interaction=nonstopmode main.tex)
           done
-          exit $failed
 
       - name: Commit PDFs
         run: |
