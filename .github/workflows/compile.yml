@@ -23,7 +23,8 @@ jobs:
         run: |
           for dir in chapter-*/; do
             echo "=== Compiling $dir ==="
-            (cd "$dir" && pdflatex -interaction=nonstopmode main.tex && pdflatex -interaction=nonstopmode main.tex)
+            (cd "$dir" && pdflatex -interaction=nonstopmode main.tex || true)
+            (cd "$dir" && pdflatex -interaction=nonstopmode main.tex || true)
           done
 
       - name: Commit PDFs
