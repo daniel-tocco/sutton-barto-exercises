@@ -5,18 +5,25 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install LaTeX packages
+        run: sudo apt-get install -y texlive-latex-extra texlive-science
+
       - name: Compile all chapters
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: "chapter-*/main.tex"
-          glob_root_file: true
-          work_in_root_file_dir: true
+        run: |
+          for dir in chapter-*/; do
+            echo "Compiling $dir..."
+            pdflatex -interaction=nonstopmode -output-directory="$dir" "${dir}main.tex"
+            pdflatex -interaction=nonstopmode -output-directory="$dir" "${dir}main.tex"
+          done
 
       - name: Commit PDFs
         run: |
