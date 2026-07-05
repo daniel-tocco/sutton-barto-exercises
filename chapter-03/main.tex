@@ -1,0 +1,338 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sutton and Barton Chapter 3}
+\author{danieltocco0 }
+\date{September 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Chapter 3} *
+
+***Unfortunately, I did questions 3.1 - 3.10 in a Jupyter notebook as a text file. I reset my computer, thinking the file was automatically saved. This is not the case for Jupyter text files.***\\\\
+\textit{Exercise 3.11} If the current state is $S_t$, and actions are selected according to a stochastic
+policy $\pi$, then what is the expectation of $R_{t+1}$ in terms of $\pi$ and the four-argument
+function p (3.2)?
+\\
+\\
+Peel off the recursive expectation of $G_{t+1}$ in 3.14, giving: 
+\\
+\\
+
+$\Sigma_{a}\pi(a|s)\Sigma_{s', r}p(s', r|s, a)[r]$\\
+\\\\
+\textit{Exercise 3.12} Give an equation for $v_\pi$ in terms of $q_\pi$ and $\pi$.\\
+\\
+
+We start in S, and take action A according to the policy $\pi$, 
+
+so we have to average over the possible actions the policy may take. 
+
+This then gives: \\
+
+$v_\pi(s) = \Sigma_{a}\pi(a|s)q_\pi(s, a)$\\
+\\\\
+\textit{Exercise 3.13} Give an equation for $q_\pi(s, a)$ in terms of $v_\pi(s)$ and the four-argument p.\\
+\\
+
+We start in S, take action A to start and thereafter follow the 
+
+policy $\pi$. This then gives: \\
+
+$q_\pi(s, a) = \Sigma_{s', r}p(s', r|s, a)[r + v_\pi(s')]$
+\\\\
+\textit{Exercise 3.14} The Bellman equation (3.14) must hold for each state for the value function $v_\pi(s)$ shown in Figure 3.2 (right) of Example 3.5. Show numerically that this equation holds
+for the center state, valued at +0.7, with respect to its four neighboring states, valued at +2.3, +0.4, 0.4, and +0.7. (These numbers are accurate only to one decimal place.)\\
+\\
+
+We have four equally possible actions in the center state to sum over:
+
+$\uparrow$, $\downarrow$, $\rightarrow$, and $\leftarrow$. The transition dynamics are deterministic; thus the 
+
+transition probabilities are simply 1 for each case. The immediate 
+
+reward is 0. Thus, we can get the value of the center state through:\\
+
+$0.25[4(0) + 0.9(2.3 + 0.4 - 0.4 + 0.7)] = 0.675 \Rightarrow 0.7$
+\\\\
+\textit{Exercise 3.15} In the gridworld example, rewards are
+positive for goals, negative for running into the edge of the world,
+and zero the rest of the time. Are the signs of these rewards important, or only the intervals between them? Prove, using (3.8), that adding a constant c to all the rewards adds a constant, $v_c$, to the values of all states, and thus does not affect the relative values of any states under any policies. What is $v_c$ in terms
+of c and $\gamma$?\\
+\\
+
+You can add (or subtract) a constant to make all rewards positive
+
+(or negative). The signs do not matter in this case. The difference 
+
+between the rewards matters; you want to maximize the rewards. 
+
+Equation 3.8 becomes: \\
+
+$G_t = \sum_{k=0}^{\infty}\gamma^{k}(R_{t+k+1} + C)$\\
+
+$G_t = \sum_{k=0}^{\infty}\gamma^{k}R_{t+k+1}$ + \sum_{k=0}^{\infty}\gamma^{k}C\\
+
+$G_t = \sum_{k=0}^{\infty}\gamma^{k}R_{t+k+1} + \frac{C}{1-\gamma}.$\\
+
+
+Where equation $3.10$ was used, as this is an infinite series of a 
+
+constant term with $r < 1$.
+\\\\
+\textit{Exercise 3.16} Now consider adding a constant C to all the rewards in an episodic task, such as maze running. Would this have any effect, or would it leave the task unchanged as in the continuing task above? Why or why not? Give an example. \\
+\\
+
+Equation $3.10$ no longer applies, as this is now an episodic task 
+
+with a terminal state T. Adding a constant C will matter now. 
+
+Depending on $\gamma$ and C, the agent will want to spend more or 
+
+less time on the task. Specifically, if $R<0<C$ and $|R < C|$, then 
+
+the agent will want to maximize it's time in the maze. Conversely, 
+
+if $C<0$, the agent will want to minimize it's time in 
+
+the maze regardless. For example, if $R = -1, C = +5$, and $\gamma = 0.9$, 
+
+compare the cases where T = 2, 3, 5 (no reward for terminal state): \\
+
+$G_{t}$ for $T_{2} = (-1 + 5) = 4$ \\
+
+$G_{t}$ for $T_{3} = (4) + 0.9(4) = 7.6$\\
+
+$G_{t}$ for $T_{5} = (4) + 0.9(4) +0.9^{2}(4) + 0.9^{3}(4) = 13.8.\\
+\\
+
+\textit{Exercise 3.17} What is the Bellman equation for action values, that is, for $q_{\pi}$ ? It must give the action value $q_{\pi}(s,a)$ in terms of the action values, $q_{\pi}(s',a')$, of possible successors to the state-action pair (s,a). Hint: The backup diagram to the right corresponds to this equation. Show the sequence of equations analogous to (3.14), but for action
+values.  \\
+\\
+
+The way to solve this is to begin with the intuition from Exercise 
+
+3.13. That is, we start in S, take action A, but now instead of 
+
+following the policy $\pi$ and averaging over possible actions
+
+given a successor state s', we take action a' given the successor state s'. 
+
+Thus, the analogous equations for 3.13 are given as:\\
+
+$q_{\pi}(s, a) = \mathbb{E}_{\pi}[G_t|s_t=s,a_{t}=a]$\\
+
+$q_{\pi}(s, a) = \mathbb{E}_{\pi}[R_{t+1} + G_{t+1}|s_t=s, a_{t}=a]$\\
+
+$q_\pi(s, a) = \Sigma_{s', r}p(s', r|s, a)[r + \gamma\mathbb{E}[G_{t+1}|s_{t+1} = s',a_{t+1} = a']$\\
+
+$q_\pi(s, a) = \Sigma_{s', r}p(s', r|s, a)[r + \gamma q_{\pi}(s', a')]$ for all s, a $\in S$, A \\
+\\
+\textit{Exercise 3.18} The value of a state depends on the values of the actions possible in that state and on how likely each action is to be taken under the current policy. We can think of this in terms of a small backup diagram rooted at the state and considering each possible action. Give the equation corresponding to this intuition and diagram for the value at the root node, $v_{\pi}(s)$, in terms of the value at the expected leaf node, $q_{\pi}(s,a)$ , given $S_t = s$. This equation should include an expectation conditioned on following the policy, $\pi$. Then give a second equation in which the expected value is written out explicitly in terms of $\pi(a|s)$ such that no expected value notation appears in the equation.  \\
+\\
+
+We are being asked to find the value of the root node, $v_{\pi}(s)$, 
+
+in terms of $q_{\pi}(s,a)$ and the probability of selecting that 
+
+action. Thus, we need the policy (probability of selecting a), and 
+
+the value of the state given that we chose a, which can be written 
+
+as:\\
+
+$v_{\pi}(s) = \Sigma_{a}\pi(a|s)q_{\pi}(s, a)$\\
+\\
+\textit{Exercise 3.19} The value of an action, $q_{\pi}$(s,a), depends on the expected next reward and the expected sum of the remaining rewards. Again we can think of this in terms of a
+small backup diagram, this one rooted at an action (state–action pair) and branching to the possible next states. Give the equation corresponding to this intuition and diagram for the action value,
+$q_{\pi}(s,a)$, in terms of the expected next reward, $R_{t+1}$, and the expected next state value,
+$v_{\pi}(S,t+1)$, given that $S_{t} = s$ and $A_{t} = a$ . This equation should include an expectation but
+not one conditioned on following the policy. Then give a second equation, writing out the
+expected value explicitly in terms of $p(s',r|s,a)$ defined by (3.2), such that no expected
+value notation appears in the equation.\\
+\\
+
+Contrary to the prior exercise, we "lock in", so to speak, an action 
+
+a in state s at the root node (so there is no policy, or probability
+
+of selecting a). We then evaluate the state-values of the leaf 
+
+nodes. This gives us: \\
+
+$q_{\pi}(s, a) = \mathbb{E}_{\pi}[R_{t+1} + v_{\pi}(s')|s_t=s, a_{t}=a]$ \\
+
+Now in terms of the transition probabilities defined by 3.2: \\
+
+$q_\pi(s, a) = \Sigma_{s', r}p(s', r|s, a)[r + \gammav_{\pi}(s')]$ for all r, s' $\in S$, R\\
+\\
+
+\textit{Exercise 3.20} Exercise 3.20 Draw or describe the optimal state-value function for the golf example. \\
+\\
+
+We have the putter and driver as our clubs. The driver can shoot 
+
+farther than the putter but less accurately. As we start at contour 
+
+3 which includes the tee, the optimal strategy is two drives and 
+
+then a putt (as described in example 3.7).\\
+\\
+\textit{Exercise 3.21} Draw or describe the contours of the optimal action-value function for putting, q_{*}(s,putter), for the golf example.  \\
+\\
+
+If we keep the assumption that we can putt very precisely and 
+
+deterministically, you should not get stuck in any sand traps or 
+
+unfavorable contours. You sink the ball in six putts. \\
+\\
+\textit{Exercise 3.22} Consider the continuing MDP shown to the
+right. The only decision to be made is that in the top state,
+where two actions are available, left and right. The numbers
+show the rewards that are received deterministically after
+each action. There are exactly two deterministic policies,
+$\pi_{left}$ and  $\pi_{right}$. What policy is optimal if $\gamma$ = 0? If $\gamma$ = 0.9? If  $\gamma$ = 0.5?  \\
+\\
+
+if $\gamma$ = 0, choose $\pi_{left}$;\\ 
+
+else if $\gamma$ = 0.9, choose $\pi_{right}$;\\
+
+else $\gamma$ = 0.5 and $\pi_{left}$, = $\pi_{right}$, so either works\\
+
+In conclusion, if $\gamma =< 0.5$, choose $\pi_{left}$ (you can 
+
+technically choose right in a tiebreaker, but i am suggesting that 
+
+i would code so left is selected).\\
+\\
+\textit{Exercise 3.23} Give the Bellman equation for $q_{*}$ for the recycling robot. \\
+\\
+
+Equation 3.20 gives $q_{*}(s, a)$: \\
+
+$q_{*}(s, a) = \Sigma_{s', r}p(s', r|s, a)[r + \gamma q_{\pi}(s', a')]$.\\
+
+As a reminder, our state set is S = {high, low}, and our action set, 
+
+is A(high) = {search, wait} and A(low) = {search, wait, recharge}.
+
+We are looking for the optimal policy, thus doing the first step of
+
+this out and begining with (high, search):
+\\
+
+$q_\pi(high, search) = \alpha[r_{search} + maxq_{*}[(high,$
+
+$search), (high, wait)]] + (1 - \alpha)[r_{search} + maxq_{*}[(low,$
+
+$search), (low, wait), (low, recharge)]]$ \\
+
+for (high, wait): \\
+
+$q_\pi(high, wait) = [r_{wait} + maxq_{*}[(high,$
+
+$search), (high, wait)]]$ \\
+
+... and we would have to do this for (low, search), (low, wait), and low(recharge).\\
+\\
+\textit{Exercise 3.24} Figure 3.5 gives the optimal value of the best state of the gridworld as 24.4, to one decimal place. Use your knowledge of the optimal policy and (3.8) to express this value symbolically, and then to compute it to three decimal places. \\
+\\
+
+To recall, all actions at A result in a reward of +10 and send you 
+
+to A'. All Actions at B result in a reward of +5 and send you to B'.
+
+Actions that take you off the grid give a reward of -1 and you 
+
+maintain your position. Given Figure 3.5, the optimal policy is take 
+
+any action at A and then go straight back up to A' and perform any 
+
+action again, and repeat. In terms of the optimal action policy, 
+
+this can be written (I keep lowercase a as action): \\
+
+$q_{*}(s, a) = \Sigma_{A', r}p(s', r|s, a)[r + \gamma max(q_{\pi}(A', left), (A', right), (A', up), (A', down))]$.\\
+
+You can then do this for A' and repeat; as said, the optimal policy
+
+is to go straight back to A, take any action, and keep repeating. 
+
+Given that the loop takes 5 actions until reward, $\gamma$ will be 
+
+in multiples of 5. While we could do the above out and see that it
+
+converges to 24.4, we can instead use our knowledge of 3.8 and 3.10,
+
+and previous exercises to show this convergence $(\gamma = 0.9)$:\\
+
+$G_{t} = \frac{10}{1-\gamma^{5}} = 24.419 => 24.4$
+\\
+\\
+\textit{Exercise 3.25} Give an equation for $v_{*}$ in terms of $q_{*}$. \\
+\\
+
+"Intuitively, the Bellman optimality equation expresses the
+
+fact that the value of a state under an optimal policy must equal 
+
+the expected return for the best action from that state" from 
+
+example 3.7, thus: \\
+
+$v_{*} = maxq_{\pi}(s, a)$ for all $s, a \in S, A$\\
+\\
+\\
+\textit{Exercise 3.26} Give an equation for $q_{*}$ in terms of $v_{*}$ and the four-argument p. \\
+\\
+
+Based on the above, this is simply: \\
+
+$q_{*} = max[\Sigma_{s', r}(s', r|s, a)[r + \gamma v_{*}(s')]$
+\\
+\\
+\textit{Exercise 3.27} Give an equation for $\pi_{*}$ in terms of $q_{*}$. \\
+\\
+
+This question is asking to find the optimal policy in terms of 
+
+$q_{*}$. We know policies decide given state s what action you take, 
+
+so this gives us: 
+
+$\pi_{*} = max_{a}q_{*}(s,a) $
+\\
+\\
+\textit{Exercise 3.28} Give an equation for $\pi_{*}$ in terms of $v_{*}$ and the four-argument p.  \\
+\\
+
+This is essentially the same as our 3.26 but we have to specify we 
+
+are taking the optimal action given s:  \\
+
+$q_{*} = max_{a}[\Sigma_{s', r}(s', r|s, a)[r + \gamma v_{*}(s')]$
+\\
+\\
+\textit{Exercise 3.29} Rewrite the four Bellman equations for the four value functions ($v_{\pi}, v_{*}, q_{\pi}$, and $q_{*})$ in terms of the three argument function p (3.4) and the two-argument function r (3.5).   \\
+\\
+
+I was tired on this and outsourced my thinking to GPT and came back 
+
+to it. Having said that, here is explanation: for 1), we have to account for the policy as before, and since we're using 3.5, the immediate reward is given by r(s,a). The next term is the expected next reward following the policy weighted by the transition probabilities. 2) is similar expect we are not finding an expectation but the maximum. 3) we commit to action a given state s, and consequently we have to figure out the transition probabilities to s', the probabilities of taking action a' given s' and use this as a weight to multiply the next stage of the bellman equation (along with $/gamma$). For 4), you are just selecting the max action when in s'. 
+
+
+
+1) $v_{\pi} = \Sigma_{a}\pi(a|s)[r(s, a) + \Sigma_{s'}p(s'|s, a)\gamma v_{\pi}(s')$]\\
+
+2)  $v_{*} = max_{a}[r(s, a) + \Sigma_{s'}p(s'|s, a)\gamma v_{\pi}(s')$])\\
+
+3) $q_{\pi} = r(s, a) + \gamma \Sigma_{s'}p(s'|s, a)\Sigma_{a'}(a'| s')q_{\pi}(s', a')
+\\
+
+4) $q_{\*} = r(s, a) + \gamma \Sigma_{s'}p(s'|s, a)max_{a'}(s', a')
+
+\end{document}

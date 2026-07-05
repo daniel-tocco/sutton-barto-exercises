@@ -1,0 +1,242 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sutton and Barton Exercises Chapter 4}
+\author{danieltocco0 }
+\date{October 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Chapter 5}
+\textit{Exercise 5.1} Consider the diagrams on the right in Figure 5.1. Why does the estimated
+value function jump up for the last two rows in the rear? Why does it drop off for the
+whole last row on the left? Why are the frontmost values higher in the upper diagrams
+than in the lower?
+\\
+\\
+
+Because the player sticks only on 20 or 21, whereas the dealer sticks on 17
+
+or above. \\
+
+As to the second question, the dealer has the highest probability of winning 
+
+if they are showing an ace. \\
+
+As to the third question, having a usable ace gives the player (and dealer, 
+
+but moreso player due to the different policies), a higher probability of 
+
+winning (to be more specific, the player sum is 12 in the front row and 
+
+if he has a usable ace, he has more leeway to hit than if the ace is not usable). 
+\\\\
+\textit{Exercise 5.2} Suppose every-visit MC was used instead of first-visit MC on the blackjack
+task. Would you expect the results to be very different? Why or why not?
+\\
+\\
+
+No. The states are the dealer's show card and your cards. The dealer's 
+
+show card is always constant, so averaging that does nothing. Your cards 
+
+will never revisit the same state because there is no zero card.
+\\\\
+\textit{Exercise 5.3} What is the backup diagram for Monte Carlo estimation of $q_{\pi}$? 
+\\
+\\
+
+Not sure how to draw that here in LaTex without spending more than it's 
+
+worth, but it will look similar to the one state-value diagram. It will 
+
+show the entire episode of actions for only the actions that are sampled 
+
+with the first action as the root.
+\\\\
+\textit{Exercise 5.4} The pseudocode for Monte Carlo ES is inefficient because, for each state–
+action pair, it maintains a list of all returns and repeatedly calculates their mean. It would
+be more efficient to use techniques similar to those explained in Section 2.4 to maintain
+just the mean and a count (for each state–action pair) and update them incrementally.
+Describe how the pseudocode would be altered to achieve this.  
+\\
+\\
+From section 2.4, equation 2.3, the incremental update rule:\\
+
+$Q_{n+1} = \frac{1}{n}[R_{n} - Q_{n}]$ \\
+
+The updated pseudocode then (all lines not shown are the same): \\
+
+Append G to $\textit{Returns}(S_{t}, A_{t}) \Rightarrow \\
+\indent N(S_{t}, A_{t}) \leftarrow N(S_{t}, A_{t}) + 1$
+\\
+
+$Q(S_{t}, A_{t}) \leftarrow average(\textit{Returns}(S_{t}, A_{t})) \Rightarrow\\
+\indent Q(S_{t}, A_{t}) \leftarrow Q(S_{t}, A_{t}) + \frac{1}{N}[G_{n} - Q_{n}]$
+\\\\
+\textit{Exercise 5.5} Consider an MDP with a single nonterminal state and a single action
+that transitions back to the nonterminal state with probability p and transitions to the
+terminal state with probability 1 p . Let the reward be +1 on all transitions, and let
+ = 1. Suppose you observe one episode that lasts 10 steps, with a return of 10. What
+are the first-visit and every-visit estimators of the value of the nonterminal state?  
+\\
+\\
+
+Originally, I was attempting to multiply by the probabilities. I missed the 
+
+key insight of Monte Carlo Methods, in that we are learning from experience 
+
+and the probabilities are built into the empirical observations. Thus, we have:
+
+$G_{0} = 10$ for first-visit, \\
+
+$\frac{1}{n}\sum_{n=0}^{n=9}G_{i} = \frac{(10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1)}{10} = 5.5$ for every-visit
+\\\\
+\textit{Exercise 5.6} What is the equation analogous to (5.6) for action values Q(s,a) instead of state values V(s), again given returns generated using b? 
+\\
+\\
+$Q(s,a) \doteq \frac{\Sigma_{t \in \tau_{s,a}}\rho_{t:T(t)-1}G_{t}}{\tau(s,a)}$
+\\\\
+\textit{Exercise 5.7} In learning curves such as those shown in Figure 5.3 error generally decreases with training, as indeed happened for the ordinary importance-sampling method. But for the weighted importance-sampling method error first increased and then decreased. Why do you think this happened? 
+\\
+\\
+
+Because initially you may have some extremely high ratios, 
+
+and since it's weighted and you're near the start with few samples, 
+
+those specific instances may dominate. In other words, the variance 
+
+is high to start. Think of, for whatever reason you'd get a ratio 
+
+of 100 vs 1 vs 2... the ratio weight for 100/(100+1+2) is going 
+
+to dominate. As you increase the amount of samples, this
+
+weight's value will decrease... And as discussed, you eventually converge. 
+\\\\
+\textit{Exercise 5.8} The results with Example 5.5 and shown in Figure 5.4 used a first-visit MC method. Suppose that instead an every-visit MC method was used on the same problem. Would the variance of the estimator still be infinite? Why or why not? 
+\\
+\\
+
+Yes, you still have infinite variance. In this case, you 
+
+take the sum of square of the sum of all ratios. E.g., if you had 
+
+an episode of length 3, you'd get $(\rho_{1})^{2} + (\rho_{2}\rho_{1})^{2} +  (\rho_{3}\rho_{2}\rho_{1})^{2}$ (and yes, 
+
+I got lazy; there are factors the probabilities that must go in front of these 
+
+terms). In short, we at least recover the first-visit example sum, 
+
+which diverges, so we know this in consequence diverges too.
+\\\\
+\textit{Exercise 5.9} Exercise 5.9 Modify the algorithm for first-visit MC policy evaluation (Section 5.1) to use the incremental implementation for sample averages described in Section 2.4 
+\\
+\\
+
+This is similar to exercise 5.4: \\
+
+Append G to $\textit{Returns}(S_{t}, A_{t}) \Rightarrow \\
+\indent N(S_{t}) \leftarrow N(S_{t}) + 1$
+\\
+
+$V(S_{t}) \leftarrow average(\textit{Returns}(S_{t})) \Rightarrow\\
+\indent V(S_{t}) \leftarrow V(S_{t}) + \frac{1}{N}[G_{n} - V(S_{t})]$
+
+As before, all lines not shown are the same.
+\\\\
+\textit{Exercise 5.10}  Derive the weighted-average update rule (5.8) from(5.7). Follow the pattern of the derivation of the unweighted rule (2.3). 
+\\
+\\
+
+$V_{n} \doteq \frac{\sum_{k=1}^{n-1} W_{k}G_{k}}{\sum_{k=1}^{n-1} W_{k}}, n \geq 2$ \indent \Rightarrow
+\\\\
+
+$V_{n+1} \doteq \frac{C_{n}V_{n} + W_{n+1}G_{n+1}}{C_{n} + W_{n+1}} \indent \Rightarrow
+\\\\
+\indent = \frac{C_{n}V_{n} + W_{n+1}G_{n+1}}{C_{n} + W_{n+1}} \indent \Rightarrow
+\\\\
+\indent V_{n+1} - V_{n} \doteq \frac{C_{n}V_{n} + W_{n+1}G_{n+1}}{C_{n} + W_{n+1}} - V_{n}
+\\\\
+\indent = \frac{C_{n}V_{n} + W_{n+1}G_{n+1} - V_{n}(C_{n} + W_{n+1})}{C_{n} + W_{n+1}}
+\\\\
+\indent = \frac{W_{n+1}(G_{n+1} - V_{n})}{C_{n} + W_{n+1}} \indent \Rightarrow
+\\\\
+\indent V_{n+1} = V_{n} + \frac{W_{n+1}(G_{n+1} - V_{n})}{C_{n} + W_{n+1}}
+\\\\
+\indent = V_{n} + \frac{W_{n+1}}{C_{n} + W_{n+1}}(G_{n+1} - V_{n})$
+\\\\
+
+This is the same as 5.8, except the indexing is different. I 
+
+used GPT, of course, to help break this down for me; the 
+
+$W_{n+1}$ is already absorbed into the $C_{n}$ term in 
+
+5.8 (as is the $W_{n}$). 
+\\\\
+\textit{Exercise 5.11} In the boxed algorithm for off-policy MC control, you may have been expecting the W update to have involved the importance-sampling ratio $\frac{\pi(A_{t}|S_{t})}{b(A_{t}|S_{t})}$, but instead it involves $\frac{1}{b(A_{t}|S_{t})}$ . Why is this nevertheless correct?
+\\
+\\
+
+Because in the preceding line, we have $A_{t} \neq \pi(S_{t})$, 
+
+then exit the inner loop. This is saying that if the the action
+
+followed by B is not the optimal action, then we exit the inner 
+
+loop. The policy $\pi(S_{t})$ takes $argmax_{a}Q(S_{t}, a)$, which
+
+has probability 1 (with ties broken consistently). Therefore, that
+
+is how we end up with $\frac{1}{b(A_{t}|S_{t})}.$
+\\\\
+\textit{Exercise 5.12} Show the steps to derive (5.14) from (5.12).
+\\
+\\
+
+Originally, I assumed E[XY] = E[X] + E[Y] applied, but the terms 
+
+X and Y must be independent; we need a stronger assumption here 
+
+which is the law of iterated expectation, in which we condition 
+
+up to the history of t+k, giving:\\
+
+$\mathbb{E_{b}}[\mathbb{E_{b}}[\rho_{t:T-1}R_{t+k}|F_{t+k}]]$ \indent = \\
+\indent $\mathbb{E_{b}}[R_{r+k}\mathbb{E_{b}}[\rho_{t:T-1}|F_{t+k}]]$
+\\
+
+Now we can split the importance sampling ratios, and because we're given
+
+the history \textit{up to} $F_{t+k}$, we can take the applicable ratio out: 
+
+\\
+\indent $\rho_{t:t+k-1}\rho_{t+k:T-1} \Rightarrow$ \\
+\indent $\rho_{t:t+k-1}\mathbb{E_{b}[\rho_{t+k:T-1}|F_{t+k}] \Rightarrow$ \\
+\indent $\mathbb{E_{b}}[R_{r+k}\rho_{t:t+k-1}\mathbb{E_{b}}[\rho_{t+k:T-1}|F_{t+k}]]$
+\\\\
+
+Now we can split the ratios and condition recursively as before:
+\\
+\indent $\rho_{t:t+k}\rho_{t+k+1:T-1} \indent \Rightarrow$ \\
+\indent $\mathbb{E_{b}}[R_{t+k}\rho_{t:t+k-1}\mathbb{E_{b}[\rho_{t+k}\mathbb{E_{b}}[\rho_{t+k+1:T-1}|F_{t+k+1}]|F_{t+k}}}]]
+\\
+
+Now since $\mathbb{E_{b}}[\rho_{t+k}]$ is $\Sigma_{a}b(A_{t+k}|S_{t+k})$ $\frac{\pi(A_{t+k}|S_{t+k})}{b(A_{t+k}|S_{t+k})}$, we know this evaluates 
+
+to 1, and knowing we can do this recursively for every term all the 
+
+way up to the end, we know they all just evaluate to 1, so we 
+
+end up with 5.14: \\
+
+$\mathbb{E_{b}}[R_{t+k}\rho_{t:t+k-1}].
+
+
+
+\\\\
+\end{document}

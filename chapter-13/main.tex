@@ -1,0 +1,424 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{Sutton and Barton Exercises Chapter 13}
+\author{danieltocco0 }
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Chapter 13}
+
+\textbf{Exercise 13.1.} Use your knowledge of the gridworld and its dynamics to determine an
+\textit{exact} symbolic expression for the optimal probability of selecting the \textbf{right} action in
+Example 13.1.
+
+\bigskip
+
+\textbf{Solution.}
+
+Let $p \in [0,1]$ denote the probability of selecting \textbf{right} in all three nonterminal states
+(since all states appear identical under the feature representation). Let $\gamma = 1$ and
+reward $r = -1$ per step.
+
+\bigskip
+
+\textbf{State layout:} $S_1$ (start) $\to$ $S_2$ $\to$ $S_3$ $\to$ $G$ (terminal).
+
+\begin{itemize}
+  \item In $S_1$: \textbf{right} moves right, \textbf{left} causes no movement.
+  \item In $S_2$: actions are \emph{reversed} — \textbf{right} moves left, \textbf{left} moves right.
+  \item In $S_3$: \textbf{right} moves right (to $G$), \textbf{left} moves left (to $S_2$).
+\end{itemize}
+
+\bigskip
+
+\textbf{Expected steps to goal.}
+
+From $S_3$: with probability $p$ we reach $G$, with probability $1-p$ we go to $S_2$.
+
+From $S_2$: with probability $p$ we go to $S_1$, with probability $1-p$ we go to $S_3$.
+
+From $S_1$: with probability $p$ we move to $S_2$, with probability $1-p$ we stay in $S_1$.
+
+\bigskip
+
+Let $v_i$ denote the (negative) value, i.e., expected number of steps to $G$, from state $S_i$.
+Since reward is $-1$ per step, $J(\theta) = v_{\pi_\theta}(S_1) = -v_1$.
+
+\bigskip
+
+Setting up the system: since \textbf{left} from $S_1$ causes no movement, the expected steps
+from $S_1$ satisfy:
+
+\begin{equation}
+  v_1 = 1 + (1-p)\,v_1 + p\,v_2
+\end{equation}
+
+\begin{equation}
+  v_2 = 1 + p\,v_1 + (1-p)\,v_3
+\end{equation}
+
+\begin{equation}
+  v_3 = 1 + (1-p)\,v_2
+\end{equation}
+
+From equation (1):
+\[
+  p\,v_1 = 1 + p\,v_2 \implies v_1 = \frac{1}{p} + v_2.
+\]
+
+Substituting into (2):
+\[
+  v_2 = 1 + p\!\left(\frac{1}{p} + v_2\right) + (1-p)\,v_3
+       = 2 + p\,v_2 + (1-p)\,v_3,
+\]
+\[
+  (1-p)\,v_2 = 2 + (1-p)\,v_3 \implies v_2 = \frac{2}{1-p} + v_3.
+\]
+
+Substituting $v_3$ from (3):
+\[
+  v_3 = 1 + (1-p)\!\left(\frac{2}{1-p} + v_3\right) = 3 + (1-p)\,v_3,
+\]
+\[
+  p\,v_3 = 3 \implies v_3 = \frac{3}{p}.
+\]
+
+Back-substituting:
+\[
+  v_2 = \frac{2}{1-p} + \frac{3}{p}, \qquad
+  v_1 = \frac{1}{p} + \frac{2}{1-p} + \frac{3}{p} = \frac{4}{p} + \frac{2}{1-p}.
+\]
+
+The performance objective is:
+\[
+  J(\theta) = -v_1 = -\frac{4}{p} - \frac{2}{1-p}.
+\]
+
+\bigskip
+
+\textbf{Optimizing over $p$.} Differentiating and setting $\frac{dJ}{dp} = 0$:
+\[
+  \frac{dJ}{dp} = \frac{4}{p^2} - \frac{2}{(1-p)^2} = 0,
+\]
+\[
+  \frac{4}{p^2} = \frac{2}{(1-p)^2} \implies \frac{(1-p)^2}{p^2} = \frac{1}{2},
+\]
+\[
+  \frac{1-p}{p} = \frac{1}{\sqrt{2}} \implies 1 - p = \frac{p}{\sqrt{2}},
+\]
+\[
+  1 = p\!\left(1 + \frac{1}{\sqrt{2}}\right) = p \cdot \frac{\sqrt{2}+1}{\sqrt{2}}.
+\]
+
+\[
+  \boxed{p^* = \frac{\sqrt{2}}{\sqrt{2}+1} = \sqrt{2}\,(\sqrt{2}-1) = 2 - \sqrt{2} \approx 0.586.}
+\]
+
+This matches the optimal value shown in Example 13.1 (approximately $0.59$), with $J(p^*) \approx -11.6$.
+\\\\
+\textbf{Exercise 13.2.} Generalize the box on page 199 (the on-policy distribution in episodic
+tasks), the policy gradient theorem (13.5), the proof of the policy gradient theorem (page 325),
+and the steps leading to the REINFORCE update equation (13.8), so that (13.8) ends up with
+a factor of $\gamma^t$ and thus aligns with the general algorithm given in the pseudocode.
+
+\bigskip
+
+\textbf{Solution.}
+
+\bigskip
+
+\textbf{Step 1: On-policy distribution with discounting.}
+
+Without discounting, the expected number of visits to state $s$ in a single episode satisfies
+(Equation 9.2):
+\[
+  \eta(s) = h(s) + \sum_{\bar{s}} \eta(\bar{s}) \sum_a \pi(a|\bar{s})\, p(s|\bar{s}, a),
+\]
+where $h(s)$ is the probability that an episode begins in $s$. With discounting ($\gamma < 1$),
+future visitations are worth less, so we include a factor of $\gamma$ in the second term:
+\[
+  \eta(s) = h(s) + \gamma \sum_{\bar{s}} \eta(\bar{s}) \sum_a \pi(a|\bar{s})\, p(s|\bar{s}, a).
+\]
+The discounted on-policy distribution is then:
+\[
+  \mu(s) = \frac{\eta(s)}{\sum_{s'} \eta(s')}, \qquad \text{for all } s \in \mathcal{S},
+\]
+where now $\eta(s)$ encodes discounted visitation counts, so states visited later in the episode
+receive geometrically smaller weight.
+
+\bigskip
+
+\textbf{Step 2: Policy gradient theorem with discounting.}
+
+The unrolling in the proof of the policy gradient theorem produces transition probabilities
+$\Pr(s \to x, k, \pi)$ — the probability of reaching $x$ from $s$ in exactly $k$ steps under $\pi$.
+With discounting, each $k$-step contribution is weighted by $\gamma^k$:
+\[
+  \nabla v_\pi(s) = \sum_{x \in \mathcal{S}} \sum_{k=0}^{\infty} \gamma^k \Pr(s \to x, k, \pi)
+  \sum_a \nabla \pi(a|x, \boldsymbol{\theta})\, q_\pi(x, a).
+\]
+Since $\nabla J(\boldsymbol{\theta}) = \nabla v_\pi(s_0)$, and unrolling from $s_0$ means $k$-step
+transitions correspond to timestep $t = k$, we obtain the discounted policy gradient theorem:
+\[
+  \nabla J(\boldsymbol{\theta}) \propto \sum_s \mu(s) \sum_a q_\pi(s, a)\, \nabla \pi(a|s, \boldsymbol{\theta}),
+  \tag{13.5$'$}
+\]
+where $\mu(s)$ is now the \emph{discounted} on-policy distribution defined in Step 1. The
+structure of the theorem is unchanged; only the meaning of $\mu(s)$ has been updated to
+incorporate $\gamma^t$ weighting.
+
+\bigskip
+
+\textbf{Step 3: Proof of the discounted policy gradient theorem.}
+
+Following the same steps as the undiscounted proof, but carrying $\gamma^k$ through the
+unrolling:
+\begin{align*}
+  \nabla J(\boldsymbol{\theta})
+  &= \nabla v_\pi(s_0) \\
+  &= \sum_s \left(\sum_{k=0}^{\infty} \gamma^k \Pr(s_0 \to s, k, \pi)\right)
+     \sum_a \nabla\pi(a|s, \boldsymbol{\theta})\, q_\pi(s, a) \\
+  &= \sum_s \eta(s) \sum_a \nabla\pi(a|s, \boldsymbol{\theta})\, q_\pi(s, a) \\
+  &= \sum_{s'} \eta(s') \sum_s \frac{\eta(s)}{\sum_{s'}\eta(s')}
+     \sum_a \nabla\pi(a|s, \boldsymbol{\theta})\, q_\pi(s, a) \\
+  &= \sum_{s'} \eta(s') \sum_s \mu(s)
+     \sum_a \nabla\pi(a|s, \boldsymbol{\theta})\, q_\pi(s, a) \\
+  &\propto \sum_s \mu(s) \sum_a \nabla\pi(a|s, \boldsymbol{\theta})\, q_\pi(s, a). \qquad \text{(Q.E.D.)}
+\end{align*}
+The key difference from the undiscounted case is that $\eta(s) = \sum_{k=0}^\infty \gamma^k
+\Pr(s_0 \to s, k, \pi)$ now discounts visits by when they occur in the episode.
+
+\bigskip
+
+\textbf{Step 4: REINFORCE update with $\gamma^t$.}
+
+Starting from (13.5$'$) and writing the gradient as an expectation:
+\[
+  \nabla J(\boldsymbol{\theta})
+  \propto \mathbb{E}_\pi\!\left[
+    \sum_a q_\pi(S_t, a)\, \nabla\pi(a|S_t, \boldsymbol{\theta})
+  \right].
+\]
+Introducing the importance sampling ratio as before:
+\[
+  = \mathbb{E}_\pi\!\left[
+    \sum_a \pi(a|S_t, \boldsymbol{\theta})\, q_\pi(S_t, a)
+    \frac{\nabla\pi(a|S_t, \boldsymbol{\theta})}{\pi(a|S_t, \boldsymbol{\theta})}
+  \right].
+\]
+Replacing the sum over $a$ by a sample $A_t \sim \pi$:
+\[
+  = \mathbb{E}_\pi\!\left[
+    q_\pi(S_t, A_t) \frac{\nabla\pi(A_t|S_t, \boldsymbol{\theta})}{\pi(A_t|S_t, \boldsymbol{\theta})}
+  \right].
+\]
+Replacing $q_\pi(S_t, A_t)$ by the sample return $G_t$ (since $\mathbb{E}_\pi[G_t | S_t, A_t]
+= q_\pi(S_t, A_t)$), and incorporating the $\gamma^t$ factor from the discounted $\eta(s)$
+— which weights timestep $t$ by $\gamma^t$ relative to $t=0$ — we obtain:
+\[
+  \nabla J(\boldsymbol{\theta})
+  \propto \mathbb{E}_\pi\!\left[
+    \gamma^t G_t \frac{\nabla\pi(A_t|S_t, \boldsymbol{\theta})}{\pi(A_t|S_t, \boldsymbol{\theta})}
+  \right].
+\]
+This yields the discounted REINFORCE update:
+\[
+  \boxed{\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t
+  + \alpha\, \gamma^t G_t \frac{\nabla\pi(A_t|S_t, \boldsymbol{\theta}_t)}{\pi(A_t|S_t, \boldsymbol{\theta}_t)}.}
+  \tag{13.8$'$}
+\]
+
+The $\gamma^t$ factor ensures that parameter updates earlier in the episode receive greater
+weight, consistent with the discounted performance objective $J(\boldsymbol{\theta}) = v_\pi(s_0)$
+under $\gamma < 1$. As $\gamma \to 1$, the factor $\gamma^t \to 1$ for all $t$ and we recover
+the undiscounted update (13.8).
+\\\\
+\textbf{Exercise 13.3.} In Section 13.1 we considered policy parameterizations using the
+soft-max in action preferences (13.2) with linear action preferences (13.3). For this
+parameterization, prove that the eligibility vector is
+\[
+  \nabla \ln \pi(a|s, \boldsymbol{\theta}) = \mathbf{x}(s, a) - \sum_b \pi(b|s, \boldsymbol{\theta})\,\mathbf{x}(s, b),
+  \tag{13.9}
+\]
+using the definitions and elementary calculus.
+
+\bigskip
+
+\textbf{Solution.}
+
+The softmax policy with linear action preferences is:
+\[
+  \pi(a|s, \boldsymbol{\theta}) = \frac{e^{h(s,a,\boldsymbol{\theta})}}{\sum_b e^{h(s,b,\boldsymbol{\theta})}},
+  \qquad h(s, a, \boldsymbol{\theta}) = \boldsymbol{\theta}^\top \mathbf{x}(s, a).
+\]
+
+Rather than applying the quotient rule directly, we first take the logarithm, which
+separates the numerator and denominator:
+\[
+  \ln \pi(a|s, \boldsymbol{\theta})
+  = h(s, a, \boldsymbol{\theta}) - \ln \sum_b e^{h(s,b,\boldsymbol{\theta})}
+  = \boldsymbol{\theta}^\top \mathbf{x}(s,a) - \ln \sum_b e^{\boldsymbol{\theta}^\top \mathbf{x}(s,b)}.
+\]
+
+Now we differentiate with respect to $\boldsymbol{\theta}$. The first term is immediate:
+\[
+  \nabla\left[\boldsymbol{\theta}^\top \mathbf{x}(s,a)\right] = \mathbf{x}(s,a).
+\]
+
+For the second term, we apply the chain rule. The derivative of $\ln f(\boldsymbol{\theta})$
+is $\nabla f(\boldsymbol{\theta}) / f(\boldsymbol{\theta})$, so:
+\[
+  \nabla \ln \sum_b e^{\boldsymbol{\theta}^\top \mathbf{x}(s,b)}
+  = \frac{\nabla \sum_b e^{\boldsymbol{\theta}^\top \mathbf{x}(s,b)}}{\sum_b e^{\boldsymbol{\theta}^\top \mathbf{x}(s,b)}}
+  = \frac{\sum_b e^{\boldsymbol{\theta}^\top \mathbf{x}(s,b)}\, \mathbf{x}(s,b)}{\sum_b e^{\boldsymbol{\theta}^\top \mathbf{x}(s,b)}}.
+\]
+
+Recognizing the softmax in the final expression:
+\[
+  = \sum_b \frac{e^{\boldsymbol{\theta}^\top \mathbf{x}(s,b)}}{\sum_{b'} e^{\boldsymbol{\theta}^\top \mathbf{x}(s,b')}}\,\mathbf{x}(s,b)
+  = \sum_b \pi(b|s, \boldsymbol{\theta})\,\mathbf{x}(s,b).
+\]
+
+Combining both terms:
+\[
+  \boxed{\nabla \ln \pi(a|s, \boldsymbol{\theta}) = \mathbf{x}(s,a) - \sum_b \pi(b|s,\boldsymbol{\theta})\,\mathbf{x}(s,b).}
+\]
+
+The second term is the expected feature vector under the current policy $\pi(\cdot|s,\boldsymbol{\theta})$.
+The eligibility vector therefore measures how much the feature of the chosen action $a$
+deviates from the policy-weighted average feature across all actions — actions whose
+features differ most from the average receive the largest gradient signal.
+\\\\
+\title{\textbf{Exercise 13.4 --- Gaussian Policy Eligibility Vectors}}
+Show that for the Gaussian policy parameterization, the eligibility vector
+$\nabla \ln \pi(a \mid s, \boldsymbol{\theta})$ has the following two parts:
+
+\[
+\nabla \ln \pi(a \mid s, \boldsymbol{\theta}_\mu)
+= \frac{1}{\sigma(s,\boldsymbol{\theta})^2}\bigl(a - \mu(s,\boldsymbol{\theta})\bigr)\,\mathbf{x}_\mu(s)
+\]
+
+\[
+\nabla \ln \pi(a \mid s, \boldsymbol{\theta}_\sigma)
+= \left(\frac{(a - \mu(s,\boldsymbol{\theta}))^2}{\sigma(s,\boldsymbol{\theta})^2} - 1\right)\mathbf{x}_\sigma(s)
+\]
+
+where $\mu(s,\boldsymbol{\theta}) = \boldsymbol{\theta}_\mu^\top \mathbf{x}_\mu(s)$ and
+$\sigma(s,\boldsymbol{\theta}) = e^{\boldsymbol{\theta}_\sigma^\top \mathbf{x}_\sigma(s)}$.
+
+\subsection*{Solution}
+
+Taking the log of the Gaussian policy:
+\[
+\ln \pi(a \mid s, \boldsymbol{\theta})
+= -\ln\sigma - \ln\sqrt{2\pi} - \frac{(a-\mu)^2}{2\sigma^2}
+\]
+
+\subsubsection*{Part 1: Gradient with respect to $\boldsymbol{\theta}_\mu$}
+
+\[
+\frac{\partial \ln\pi}{\partial \mu}
+= \frac{a - \mu}{\sigma^2}
+\]
+
+Since $\mu = \boldsymbol{\theta}_\mu^\top \mathbf{x}_\mu(s)$, we have $\nabla_{\boldsymbol{\theta}_\mu}\mu = \mathbf{x}_\mu(s)$, so by the chain rule:
+
+\[
+\nabla_{\boldsymbol{\theta}_\mu} \ln\pi
+= \frac{a - \mu(s,\boldsymbol{\theta})}{\sigma(s,\boldsymbol{\theta})^2}\,\mathbf{x}_\mu(s)
+\]
+
+\subsubsection*{Part 2: Gradient with respect to $\boldsymbol{\theta}_\sigma$}
+
+\[
+\frac{\partial \ln\pi}{\partial \sigma}
+= -\frac{1}{\sigma} + \frac{(a-\mu)^2}{\sigma^3}
+= \frac{1}{\sigma}\left(\frac{(a-\mu)^2}{\sigma^2} - 1\right)
+\]
+
+Since $\sigma = e^{\boldsymbol{\theta}_\sigma^\top \mathbf{x}_\sigma(s)}$, we have $\nabla_{\boldsymbol{\theta}_\sigma}\sigma = \sigma\,\mathbf{x}_\sigma(s)$, so by the chain rule:
+
+\[
+\nabla_{\boldsymbol{\theta}_\sigma} \ln\pi
+= \frac{1}{\sigma}\left(\frac{(a-\mu)^2}{\sigma^2} - 1\right) \cdot \sigma\,\mathbf{x}_\sigma(s)
+= \left(\frac{(a - \mu(s,\boldsymbol{\theta}))^2}{\sigma(s,\boldsymbol{\theta})^2} - 1\right)\mathbf{x}_\sigma(s)
+\]
+\subsection*{Exercise 13.5 --- Bernoulli-Logistic Unit}
+
+A \textit{Bernoulli-logistic unit} is a stochastic neuron-like unit with feature vector
+$\mathbf{x}(s)$, binary action $A_t \in \{0, 1\}$, and action preferences given by
+$h(s, 1, \boldsymbol{\theta}) - h(s, 0, \boldsymbol{\theta}) = \boldsymbol{\theta}^\top \mathbf{x}(s)$.
+
+\subsubsection*{Part (a): Show $P_t = \pi(1 \mid S_t, \boldsymbol{\theta}_t) = \sigma(\boldsymbol{\theta}^\top \mathbf{x}(s))$}
+
+Applying the softmax distribution (Eq.\ 13.2) to action $a = 1$:
+\[
+\pi(1 \mid s, \boldsymbol{\theta})
+= \frac{e^{h(s,1,\boldsymbol{\theta})}}{e^{h(s,0,\boldsymbol{\theta})} + e^{h(s,1,\boldsymbol{\theta})}}
+\]
+
+Dividing numerator and denominator by $e^{h(s,1,\boldsymbol{\theta})}$:
+\[
+= \frac{1}{e^{h(s,0,\boldsymbol{\theta}) - h(s,1,\boldsymbol{\theta})} + 1}
+= \frac{1}{1 + e^{-\boldsymbol{\theta}^\top \mathbf{x}(s)}}
+= \sigma\!\left(\boldsymbol{\theta}^\top \mathbf{x}(s)\right) \qquad \square
+\]
+
+\subsubsection*{Part (b): Monte-Carlo REINFORCE Update}
+
+The general REINFORCE update is:
+\[
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t + \alpha G_t \nabla \ln \pi(A_t \mid S_t, \boldsymbol{\theta}_t)
+\]
+
+Using the eligibility derived in part (c):
+\[
+\boldsymbol{\theta}_{t+1} = \boldsymbol{\theta}_t + \alpha G_t (A_t - P_t)\,\mathbf{x}(S_t)
+\]
+
+\subsubsection*{Part (c): Eligibility $\nabla \ln \pi(a \mid s, \boldsymbol{\theta})$}
+
+Let $P = \pi(1 \mid s, \boldsymbol{\theta}) = \sigma(\boldsymbol{\theta}^\top \mathbf{x}(s))$,
+so $\pi(0 \mid s, \boldsymbol{\theta}) = 1 - P$.
+
+\textbf{Case $a = 1$:}
+\[
+\nabla \ln \pi(1 \mid s, \boldsymbol{\theta})
+= \frac{\nabla P}{P}
+\]
+Using the logistic derivative $\nabla P = P(1-P)\,\mathbf{x}(s)$:
+\[
+= \frac{P(1-P)\,\mathbf{x}(s)}{P} = (1 - P)\,\mathbf{x}(s)
+\]
+
+\textbf{Case $a = 0$:}
+\[
+\nabla \ln \pi(0 \mid s, \boldsymbol{\theta})
+= \frac{-\nabla P}{1 - P}
+= \frac{-P(1-P)\,\mathbf{x}(s)}{1-P} = -P\,\mathbf{x}(s)
+\]
+
+Both cases unify as $(a - P)\,\mathbf{x}(s)$, verified by substitution:
+\begin{align*}
+a = 1: &\quad (1 - P)\,\mathbf{x}(s) \checkmark \\
+a = 0: &\quad (0 - P)\,\mathbf{x}(s) = -P\,\mathbf{x}(s) \checkmark
+\end{align*}
+
+Therefore:
+\[
+\boxed{\nabla \ln \pi(a \mid s, \boldsymbol{\theta}) = \bigl(a - \pi(1 \mid s, \boldsymbol{\theta})\bigr)\,\mathbf{x}(s)}
+\]
+
+\hfill$\square$
+
+\end{document}

@@ -1,0 +1,249 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sutton and Barton Exercises Chapter 7}
+\author{danieltocco0 }
+\date{November 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Chapter 7}
+\\\\
+\textit{Exercise 7.1} In Chapter 6 we noted that the Monte Carlo error can be written as the
+sum of TD errors (6.6) if the value estimates don’t change from step to step. Show that
+the n-step error used in (7.2) can also be written as a sum TD errors (again if the value
+estimates don’t change) generalizing the earlier result. 
+\\
+\\
+$G_{t:t+n} - V_{t+n-1}(S_{t}) = R_{t+1} + \gamma G_{t+1:t+n} - V_{t+n-1}(S_{t}) + \gamma V_{t+n-1}(S_{t+1}) - \gamma V_{t+n-1}(S_{t+1}) \\
+
+$= \delta + \gamma (G_{t+1:t+n} - \gamma V_{t+n-1}(S_{t+1})) \Rightarrow$ \\
+
+$\delta + \gamma (G_{t+2:t+n} - \gamma V_{t+n-1}(S_{t+2})) \Rightarrow$ \\
+
+$\sum_{k=t}^{t+n-1}\gamma^{k-t}\delta_{k}$
+\\\\
+
+\textit{Exercise 7.3} Why do you think a larger random walk task (19 states instead of 5) was
+used in the examples of this chapter? Would a smaller walk have shifted the advantage
+to a different value of n? How about the change in left-side outcome from 0 to -1 made
+in the larger walk? Do you think that made any difference in the best value of n?  
+\\
+\\
+
+Because with only 5 states, there are so few states, it is hard to see the 
+
+difference (and benefit) of using n-step methods. The bias-variance tradeoff 
+
+is more pronounced with 19 states. To be sure, there is higher bias in fewer 
+
+step methods and more variance in higher step methods. 
+\\
+
+A smaller walk would have shifted the advantage to a smaller n. In particular
+
+for this problem, n=2 would be best. If n=3, then the value of C could be 
+
+pulled towards 1, which would be inaccurate.
+\\
+
+No, the optimal value of n would not change, as: "Scaling rewards scales 
+
+the variance up or down, but it doesn't change which n trades off bias vs 
+
+variance best." In other words, the bias-variance structure is maintained.
+
+If one wanted to change the optimal value of n, one could: change the
+
+transition dynamics, add stochastic resets, change the environment to
+
+make early termination more common, or add stochastic reset
+
+(randomly get send back to the starting position).
+\\\\
+
+\textit{Exercise 7.4} Prove that the n-step return of Sarsa (7.4) can be written exactly in terms
+of a novel TD error, as (too lazy to write it out) 
+\\
+\\
+
+$G_{t:t+n} - Q_{t-1}(S_{t}, A_{t}) = R_{t+1} + \gamma G_{t+1:t+n} - Q_{t-1}(S_{t}, A_{t}) \Rightarrow$
+\\
+
+$G_{t:t+n} - Q_{t-1}(S_{t}, A_{t}) = R_{t+1} + \gamma G_{t+1:t+n} - Q_{t-1}(S_{t}, A_{t}) - \gamma Q_{t}(S_{t+1}, A_{t+1}) + 
+
+\gamma Q_{t}(S_{t+1}, A_{t+1}) 
+\\
+
+= \delta_{t} + \gamma (G_{t+1:t+n} - Q_{t}(S_{t+1}, A_{t+1})) \Rightarrow
+\\
+
+\delta_{t} + \gamma \delta_{t+1} + \gamma^{2}(G_{t+2:t+n} - Q_{t+1}(S_{t+2}, A_{t+2})) \Rightarrow
+\\
+
+\sum_{k=t}^{t+n-1}\gamma^{k-t}\delta_{k} + \gamma^{n}(G_{t+n:t+n} - Q_{t+n-1}(S_{t+n}, A_{t+n}))$
+\\
+
+$G_{t+n:t+n} - Q_{t+n-1}(S_{t+n}, A_{t+n})$ is 0, however. We can add $Q_{t-1}(S_{t}, A_{t})$ over
+
+and recover 6.6.
+\\\\
+\textit{Exercise 7.5} Write the pseudocode for the off-policy state-value prediction algorithm
+described above. 
+\\
+\\
+
+We have to initialize V(s) arbitrarily because we're working with state 
+
+values. 
+\\
+
+Next: If $\tau + n < T$, then: $\rho_{\tau}(R_{t+1} + \gamma G_{\tau+1:h}) + (1 - \rho_{\tau}(V_{\tau + n -1}(S_{t}))$ \\
+
+Then: $V(S_{\tau}) \leftarrow V(S_{\tau}) + \alpha[G - V(S_{\tau})]$
+\\\\
+\textit{Exercise 7.5} Prove that the control variate in the above equations does not change the
+expected value of the return.  
+\\
+\\
+
+The control variate part is: \gamma$Q_{h-1}(S_{t+1}, A_{t+1}) + \gamma \bar{V}_{h-1}(S_{t+1})$
+\\
+
+Taking \gamma$\mathbb{E}[Q_{h-1}(S_{t+1}, A_{t+1}) + \bar{V}_{h-1}(S_{t+1})]$ 
+\\
+
+= $\sum_{a}\mu(A_{t+1}|S_{t+1})\frac{\pi(A_{t+1}|S_{t+1})}{\mu(A_{t+1}|S_{t+1})}[Q_{h-1}(S_{t+1}, A_{t+1}) + \bar{V}_{h-1}(S_{t+1})]$
+\\
+
+= $\sum_{a}\pi(A_{t+1}|S_{t+1})[Q_{h-1}(S_{t+1}, A_{t+1}) + \bar{V}_{h-1}(S_{t+1})]$
+\\
+
+Because $\gamma \bar{V}_{h-1}(S_{t+1})$ does is not a probability distribution over actions, 
+
+$\sum_{a}\pi(A_{t+1}|S_{t+1}) \bar{V}_{h-1}(S_{t+1})] = \bar{V}_{h-1}(S_{t+1})$. And now:
+\\
+
+$\sum_{a}\pi(A_{t+1}|S_{t+1})[Q_{h-1}(S_{t+1}, A_{t+1})] = \bar{V}_{h-1}(S_{t+1})]$ and so:
+\\
+
+$\bar{V}_{h-1}(S_{t+1}) -  \bar{V}_{h-1}(S_{t+1}) = 0.$
+\\\\
+\textit{Exercise 7.7} Show that the general (off-policy) version of the n-step return (7.13) can
+still be written exactly and compactly as the sum of state-based TD errors (6.5) if the
+approximate state value function does not change.  
+\\
+\\
+
+Define the TD error: 
+
+$\delta_{t} = \rho_{t}(R_{t+1} + \gamma G_{t+1:h} - V(S_{t}))$ 
+\\
+
+Subtract $V(S_{t})$ so we can form the TD error: 
+
+$G_{t:h} - V(S_{t})= \rho_{t}(R_{t+1} + \gamma G_{t+1:h}) + (1-\rho_{t})V_{h-1}(S_{t}) - V(S_{t})$
+\\
+
+$= \rho_{t}(R_{t+1} + \gamma G_{t+1:h} - V(S_{t}) + (1-\rho_{t})(V(S_{t}) - V_{h-1}(S_{t}))$
+\\
+
+where above we used the fact that $V(S_{t}) = V(S_{t})(1-\rho_{t}) + \rho V(S_{t})$. 
+
+Now under the assumption of the approximate state value function not 
+
+changing, $V(S_{t}) = V_{h-1}(S_{t})$, we get: 
+\\
+
+$G_{t:h} - V(S_{t}) =  \rho_{t}(R_{t+1} + \gamma G_{t+1:h} - V(S_{t}))$
+\\
+
+Now $G_{t+1:h}$ can be unrolled as:
+\\
+
+$G_{t+1:h} = \rho_{t+1}(R_{t+2} + \gamma G_{t+2:h}) + (1 - \rho_{t+1})V(S_{t+1})$
+\\
+
+which we can substitute back into $G_{t:h} - V(S_{t})$:
+\\
+
+$\rho_{t}(R_{t+1} + \gamma (\rho_{t+1}(R_{t+2} + \gamma G_{t+2:h}) + (1 - \rho_{t+1})V(S_{t+1}) - V(S_{t}))$. 
+\\
+
+For emphasis, note again that V does not change, so $(1-p_{t+1})V(S_{t+1})$ again 
+
+gets cancelled out, and we get:
+\\
+
+$\rho_{t}(R_{t+1} + \gamma (\rho_{t+1}(R_{t+2} + \gamma G_{t+2:h}) - V(S_{t}))$. 
+\\
+
+This repeats for all intermediate terms, and the last term $V(S_h)$ also 
+
+disappears, as we'd have $G_{h:h} - V(S_{h})$ (with $\gamma$ and $\rho$ factors shared between 
+
+them). We thus ultimately end up with: 
+\\
+
+$G_{t:h} - V(S_{t}) = \sum_{t}^{t-1}\gamma^{h-t}(\prod_{k}^{h-1}\rho_{k})\delta_{t}$
+
+\\\\
+\textit{Exercise 7.11} Show that if the approximate action values are unchanging, then the
+tree-backup return (7.16) can be written as a sum of expectation-based TD errors:
+$G_{t:t+n} = Q(S_{t}, A_{t}) + \sum_{k=t}^{min(t+n-1, T-1)} \delta_{k}\prod_{i=t+1}^{k} \gamma\pi(A_{i}|S_{i})$.
+\\
+
+With some clever math and using 7.8, 7.16 can be rewritten as: 
+\\
+
+$G_{t:t+n} = R_{t+1} + \gamma(\bar{V}(S_{t+1}) + \pi(A_{t+1}|S_{t+1})(G_{t+1} - Q(S_{t+1}, A_{t+1})))$
+\\
+
+and then subtract $Q(S_{t}, A_{t})$ to get: 
+\\
+
+$G_{t:t+n} - Q(S_{t}, A_{t}) = R_{t+1} + \gamma\bar{V}(S_{t+1}) + \pi(A_{t+1}|S_{t+1})(G_{t+1} - 
+
+Q(S_{t+1}, A_{t+1}))) - Q(S_{t}, A_{t})$
+\\
+
+$= (R_{t+1} + \gamma\bar{V}(S_{t+1}) - Q(S_{t}, A_{t})) + \gamma \pi(A_{t+1}|S_{t+1})(G_{t+1} - 
+
+Q(S_{t+1}, A_{t+1}))$
+\\
+
+$= \bar{\delta_{t}} + \gamma \pi(A_{t+1}|S_{t+1})(G_{t+1} - Q(S_{t+1}, A_{t+1}))$\\
+
+Now take into account the term $(G_{t+1} - Q(S_{t+1}, A_{t+1}))$ -- we can expand as 
+
+before:
+\\
+
+$G_{t+1} - Q(S_{t+1}, A_{t+1}) = \bar{\delta}_{t+1} + \gamma \pi(A_{t+2}|S_{t+2})(G_{t+2} - Q(S_{t+2}, A_{t+2}))$
+\\
+
+and substitute back into the original express to get:
+\\
+
+$G_{t:t+n} - Q(S_{t}, A_{t}) = \bar{\delta}_{t} + \gamma \pi(A_{t+1}|S_{t+1})(\bar{\delta}_{t+1} + \gamma \pi(A_{t+2}|S_{t+2})(G_{t+2} - Q(S_{t+2}, A_{t+2})))
+\\
+
+= $\bar{\delta}_{t} + \gamma \pi(A_{t+1}|S_{t+1})(\bar{\delta}_{t+1}) + \gamma^{2}(\pi(A_{t+1}|S_{t+1})\pi(A_{t+2}|S_{t+2}))(G_{t+2} - Q(S_{t+2}, A_{t+2})).$
+\\ 
+
+this ultimately yields the original equation:
+\\
+
+$G_{t:t+n} = Q(S_{t}, A_{t}) + \sum_{k=t}^{min(t+n-1, T-1)} \delta_{k}\prod_{i=t+1}^{k} \gamma\pi(A_{i}|S_{i}).$
+
+
+
+
+
+
+
+
+
+\end{document}

@@ -1,0 +1,71 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sutton and Barton Exercises Chapter 9}
+\author{danieltocco0 }
+\date{February 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Chapter 9}
+\textit{Exercise 9.1} Show that tabular methods such as presented in Part I of this book are a
+special case of linear function approximation. What would the feature vectors be?
+\\
+\\
+
+In the tabular methods, the value function takes the form $V(s) = s$ 
+
+(as in, $V(5) = 5$). This means that we can create a one-hot encoded feature 
+
+vector x(s) and multiply by the weight vector:
+\\
+
+$\hat{v}(s, x) = w^{T} x(s) = w_{s} = V(s)$
+\\
+
+From this, we can see the independence of states from one another in the 
+
+tabular case.
+\\\\
+\textit{Exercise 9.2} Why does (9.17) define $(n + 1)^{k}$ distinct features for dimension k?
+\\
+\\
+
+I think it is easier to think of this by rephrasing the question as:
+
+how many combinations of numbers can we have if we have k numbers that
+
+can take up to a power of n? To do one, short example entirely out with
+
+n = 2, k = 1: 
+
+$n = (1, 2, 3)$ and $k = (0, 1);$ we get $len(1, 2, 3) = (2 + 1)^{1}.$
+\\\\
+\textit{Exercise 9.3} What n and $c_{i,j}$ produce the feature vectors $x(s) = (1, s_{1}, s_{2}, s_{1}s_{2}, s_{1}^{2}, s_{2}^{2}, s_{1}s_{2}^{2}, s_{1}^{2}s_{2}, s_{1}^{2}s_{2}^{2})^{T}$? 
+\\
+\\
+
+$len(x(s)) = 9$, so $n = 2$ and $k = 2$; but because of the powers used, the $c_{i, j}$ 
+
+must be (0, 1, 2).
+\\\\
+\textit{Exercise 9.4} Exercise 9.4 Suppose we believe that one of two state dimensions is more likely to have an effect on the value function than is the other, that generalization should be primarily across this dimension rather than along it. What kind of tilings could be used to take
+advantage of this prior knowledge?
+\\
+\\
+
+You want to increase the density along the dimension you want less
+
+generalization. Conversely, lessening the density along this dimensions 
+
+increases generalization. You could use rectangular tilings in this case; 
+
+that is, if we had dimensions x and y, and wanted the values to depend more 
+
+heavily on x, we would would have more horizontal tiles than vertical (e.g., 
+
+if we had 100 tiles total then we'd have rows of 5 rows and 20 columns).
+
+\end{document}

@@ -1,0 +1,281 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sutton and Barton Exercises Chapter 10}
+\author{danieltocco0 }
+\date{March 2026}
+
+\documentclass{article}
+\usepackage{amsmath}
+\begin{document}
+
+
+\maketitle
+
+\section{Chapter 10}
+\textit{Exercise 10.1} We have not explicitly considered or given pseudocode for any Monte Carlo
+methods in this chapter. What would they be like? Why is it reasonable not to give
+pseudocode for them? How would they perform on the Mountain Car task?
+\\
+\\
+
+The pseudocode for MC is not going to look too different than n-step SARSA.
+
+In fact, it may be simpler, because MC will not involve the bootstrapping 
+
+term. Consequently, because there is no bootstrapping, MC is going to 
+
+perform poorly here. The episodes, especially early on, are long, and 
+
+the rewards are sparse (that is, there is little, or sparse, information
+
+when your reward signal is -1 for all actions except the one that
+
+actually achieves the goal). N-step TD methods thus perform better since
+
+they are constantly exploring new states (due to optimistic initial values)
+
+and bootstrap during the actual run.
+\\\\
+\textit{Exercise 10.2} Give pseudocode for semi-gradient one-step Expected Sarsa for control.
+\\
+\\
+
+In line with GPT and another answer I found, I updated the box from page 
+
+244. The update applies to the weight vector, as we are taking the expected 
+
+bootstrapped value:
+\\
+
+$\mathbf{w} \leftarrow \mathbf{w} + \alpha \left[ R + \gamma \sum_{a} \pi(a | S') \hat{q}(S', a, \mathbf{w}) - \hat{q}(S, A, \mathbf{w}) \right] \nabla \hat{q}(S, A, \mathbf{w}).$
+\\
+
+Because we still have to take an action after the update, we then take A'. 
+
+We can flip this line and the weight vector update, if we really want to, 
+
+though this need not necessarily be the case (we can take A' and still update 
+
+the previous line with just R).
+\\\\
+\textit{Exercise 10.3} Why do the results shown in Figure 10.4 have higher standard errors at
+large n than at small n?
+\\
+\\
+
+Because the variance of a sum of n random variables grows with n. For large 
+
+n then, successive runs will result in more varied learning curves.
+\\\\
+\textit{Exercise 10.4} Why do the results shown in Figure 10.4 have higher standard errors at
+large n than at small n?
+\\
+\\
+
+We just make the update to the delta term as follows: 
+\\
+
+$\delta \leftarrow R - \bar{R} + \max_{a} \hat{q}(S', a, \mathbf{w}) - \hat{q}(S, A, \mathbf{w})$.
+\\
+
+This is because Q-learning assumes you take the optimal action. To be sure,
+
+we have an estimate of the value at State S, then action A, and then we 
+
+capture 1) the differential reward, and 2) our prior estimate that we 
+
+committed to and the estimate of the value assuming we act optimally after 
+
+action A (I am basically trying to re-explain TD error, but we include 
+
+the differential error now)!
+\\\\
+\textit{Exercise 10.5} What equations are needed (beyond 10.10) to specify the differential
+version of TD(0)?
+\\
+\\
+
+TD(0) updates the state-value functions rather than action value functions.
+
+Similarly to 10.4 then, we make an update to the delta term as follows:
+\\
+
+$\delta = R - \bar{R} + \hat{V}(S', \mathbf{w}) - \hat{V}(S, \mathbf{w}).$
+
+The logic is, again, similar, except we are are of course working with state 
+
+values.
+\\\\
+\textit{Exercise 10.6} Suppose there is an MDP that under any policy produces the deterministic sequence of rewards +1,0,+1,0,+1,0,... going on forever. Technically, this violates
+ergodicity; there is no stationary limiting distribution $\mu_{\pi}$ and the limit (10.7) does not
+exist. Nevertheless, the average reward (10.6) is well defined. What is it? Now consider
+two states in this MDP. From A, the reward sequence is exactly as described above,
+starting with a +1, whereas, from B, the reward sequence starts with a 0 and then
+continues with +1,0,+1,0,.... We would like to compute the differential values of A and
+B. Unfortunately, the differential return (10.9) is not well defined when starting from
+these states as the implicit limit does not exist. To repair this, one could alternatively
+define the differential value of a state a
+\\
+
+$v_{\pi}(s) \doteq \lim_{\gamma \to 1} \lim_{h \to \infty} \sum_{t=0}^{h} \gamma^t \Big( \mathbb{E}_{\pi}[R_{t+1} | S_0 = s] - r(\pi) \Big)$
+\\
+Under this definition, what are the differential values of states A and B?
+\\
+\\
+
+So we know over the long run $r(\pi) = \frac{1}{2}$. We also know B is just A shifted 
+
+one step forward. This means the differential reward of A and B are, 
+
+respectively: 
+\\
+$v_{\pi}(A) = \sum_{t=0}^{\infty} \gamma^t \Big( \mathbb{E}_{\pi}[R_{t+1} | S_0 = A] - r(\pi) \Big)$\\
+$v_{\pi}(A) = \gamma^0\left(+\frac{1}{2}\right) + \gamma^1\left(-\frac{1}{2}\right) + \gamma^2\left(+\frac{1}{2}\right) + \gamma^3\left(-\frac{1}{2}\right) + \cdots$\\
+$v_{\pi}(A) = \frac{1}{2}\left(1 - \gamma + \gamma^2 - \gamma^3 + \cdots\right)$\\
+$v_{\pi}(A) = \frac{1}{2} \cdot \frac{1}{1+\gamma}$\\
+$v_{\pi}(A) = \lim_{\gamma \to 1} \frac{1}{2} \cdot \frac{1}{1+\gamma} = \frac{1}{2} \cdot \frac{1}{2} = \frac{1}{4}$\\.
+$v_{\pi}(B) = \sum_{t=0}^{\infty} \gamma^t \Big( \mathbb{E}_{\pi}[R_{t+1} | S_0 = B] - r(\pi) \Big)$\\
+$v_{\pi}(B) = \gamma^0\left(-\frac{1}{2}\right) + \gamma^1\left(+\frac{1}{2}\right) + \gamma^2\left(-\frac{1}{2}\right) + \gamma^3\left(+\frac{1}{2}\right) + \cdots$\\
+$v_{\pi}(B) = -\frac{1}{2}\left(1 - \gamma + \gamma^2 - \gamma^3 + \cdots\right)$\\
+$v_{\pi}(B) = -\frac{1}{2} \cdot \frac{1}{1+\gamma}$\\
+$v_{\pi}(B) = \lim_{\gamma \to 1} -\frac{1}{2} \cdot \frac{1}{1+\gamma} = -\frac{1}{2} \cdot \frac{1}{2} = -\frac{1}{4}$.
+\\
+
+Again, note that B is shifted one step forward from A; because, again, 
+
+we are taking the differential value this is \textit{why} it is $-\frac{1}{4}$.
+\\\\
+\textit{Exercise 10.7}  Consider a Markov reward process consisting of a ring of three states A, B,
+and C, with state transitions going deterministically around the ring. A reward of +1 is
+received upon arrival in A and otherwise the reward is 0. What are the differential values
+of the three states, using (10.13)?
+\\
+\\
+We know $r(\pi) = \frac{1}{3}$. So we get:
+\\
+\begin{align*}
+&\textbf{Starting at A} \text{ (next arrivals are B, C, A, B, C, A, } \ldots\text{):} \\
+&\text{Rewards: } 0, 0, +1, 0, 0, +1, \ldots \\
+&\text{Centered: } -\frac{1}{3}, -\frac{1}{3}, +\frac{2}{3}, -\frac{1}{3}, -\frac{1}{3}, +\frac{2}{3}, \ldots \\[10pt]
+&\textbf{Starting at B} \text{ (next arrivals are C, A, B, C, A, } \ldots\text{):} \\
+&\text{Rewards: } 0, +1, 0, 0, +1, 0, \ldots \\
+&\text{Centered: } -\frac{1}{3}, +\frac{2}{3}, -\frac{1}{3}, -\frac{1}{3}, +\frac{2}{3}, -\frac{1}{3}, \ldots \\[10pt]
+&\textbf{Starting at C} \text{ (next arrivals are A, B, C, A, } \ldots\text{):} \\
+&\text{Rewards: } +1, 0, 0, +1, 0, 0, \ldots \\
+&\text{Centered: } +\frac{2}{3}, -\frac{1}{3}, -\frac{1}{3}, +\frac{2}{3}, -\frac{1}{3}, -\frac{1}{3}, \ldots
+\end{align*}
+\\
+
+And then actually computing the values:
+
+\begin{align*}
+&\textbf{Computing } v_{\pi}(A): \\
+&v_{\pi}(A) = \left(-\frac{1}{3} - \frac{\gamma}{3} + \frac{2\gamma^2}{3}\right) \cdot \frac{1}{1-\gamma^3} \\
+&\lim_{\gamma \to 1}: \text{ numerator } = -\frac{1}{3} - \frac{1}{3} + \frac{2}{3} = 0, \text{ so apply L'Hôpital's rule:} \\
+&\frac{d}{d\gamma}\left(-\frac{1}{3} - \frac{\gamma}{3} + \frac{2\gamma^2}{3}\right) = -\frac{1}{3} + \frac{4\gamma}{3} \to 1 \text{ as } \gamma \to 1 \\
+&\frac{d}{d\gamma}(1 - \gamma^3) = -3\gamma^2 \to -3 \text{ as } \gamma \to 1 \\
+&v_{\pi}(A) = \frac{1}{-3} = -\frac{1}{3} \\[10pt]
+&\textbf{Computing } v_{\pi}(B): \\
+&v_{\pi}(B) = \left(-\frac{1}{3} + \frac{2\gamma}{3} - \frac{\gamma^2}{3}\right) \cdot \frac{1}{1-\gamma^3} \\
+&\lim_{\gamma \to 1}: \text{ numerator } = -\frac{1}{3} + \frac{2}{3} - \frac{1}{3} = 0, \text{ so apply L'Hôpital's rule:} \\
+&\frac{d}{d\gamma}\left(-\frac{1}{3} + \frac{2\gamma}{3} - \frac{\gamma^2}{3}\right) = \frac{2}{3} - \frac{2\gamma}{3} \to 0 \text{ as } \gamma \to 1 \\
+&\frac{d}{d\gamma}(1 - \gamma^3) = -3\gamma^2 \to -3 \text{ as } \gamma \to 1 \\
+&v_{\pi}(B) = \frac{0}{-3} = 0 \\[10pt]
+&\textbf{Computing } v_{\pi}(C): \\
+&v_{\pi}(C) = \left(\frac{2}{3} - \frac{\gamma}{3} - \frac{\gamma^2}{3}\right) \cdot \frac{1}{1-\gamma^3} \\
+&\lim_{\gamma \to 1}: \text{ numerator } = \frac{2}{3} - \frac{1}{3} - \frac{1}{3} = 0, \text{ so apply L'Hôpital's rule:} \\
+&\frac{d}{d\gamma}\left(\frac{2}{3} - \frac{\gamma}{3} - \frac{\gamma^2}{3}\right) = -\frac{1}{3} - \frac{2\gamma}{3} \to -1 \text{ as } \gamma \to 1 \\
+&\frac{d}{d\gamma}(1 - \gamma^3) = -3\gamma^2 \to -3 \text{ as } \gamma \to 1 \\
+&v_{\pi}(C) = \frac{-1}{-3} = \frac{1}{3}
+\end{align*}
+\\
+
+Note we are using L'Hôpital's rule because if use direct substitution as 
+
+$\lim_{\gamma \to 1}$ into our value equations, the numerator and denominator 
+
+both evaluate to 0.
+\\\\
+{Exercise 10.8} The pseudocode in the box on page 251 updates $\bar{R}$ using $\delta_t$ as an error rather than simply $R_{t+1} - \bar{R}$. Both errors work, but using $\delta_t$ is better. To see why, consider the ring MRP of three states from Exercise 10.7. The estimate of the average reward should tend towards its true value of $\frac{1}{3}$. Suppose it was already there and was held stuck there. What would the sequence of $R_{t+1} - \bar{R}$ errors be? What would the sequence of $\delta_t$ errors be (using Equation 10.10)? Which error sequence would produce a more stable estimate of the average reward if the estimate were allowed to change in response to the errors? Why?
+\\
+\\
+Consider again the differential error sequence of $v_{\pi}(A)$:
+\begin{align*}
+-\frac{1}{3}, -\frac{1}{3}, +\frac{2}{3}, -\frac{1}{3}, -\frac{1}{3}, +\frac{2}{3}, \ldots \\[10pt]
+\end{align*}
+\\
+
+This sequence never settles. It keeps oscillating between +2/3 and -1/3
+
+forever. If $\bar{R}$ were allowed to update in response to these errors, 
+
+it would get yanked up and then back down every cycle — very unstable. 
+
+Now recall that $\delta_t$ is the full TD error:
+\begin{align*}
+\delta_t = R_{t+1} - \bar{R} + \hat{v}(S_{t+1}, \mathbf{w}) - \hat{v}(S_t, \mathbf{w})
+\end{align*}
+
+Using the true values $v(A) = -\frac{1}{3}$, $v(B) = 0$, $v(C) = \frac{1}{3}$, and starting at C,
+
+the transitions are $C \to A \to B \to C \to A \to \cdots$
+
+\begin{align*}
+&\textbf{Step 1: } C \to A \\
+&\delta = +1 - \frac{1}{3} + v(A) - v(C) = +1 - \frac{1}{3} + \left(-\frac{1}{3}\right) - \frac{1}{3} = 0 \\[6pt]
+&\textbf{Step 2: } A \to B \\
+&\delta = 0 - \frac{1}{3} + v(B) - v(A) = 0 - \frac{1}{3} + 0 - \left(-\frac{1}{3}\right) = 0 \\[6pt]
+&\textbf{Step 3: } B \to C \\
+&\delta = 0 - \frac{1}{3} + v(C) - v(B) = 0 - \frac{1}{3} + \frac{1}{3} - 0 = 0
+\end{align*}
+
+So the sequence of $\delta_t$ errors is $0, 0, 0, 0, 0, 0, \ldots$.
+\\
+
+In short — $R_{t+1}$ - \bar{R} sees only the noisy instantaneous reward, 
+
+while $\delta_{t}$ sees the reward plus the change in long-term prospects, 
+
+which is a much smoother signal.
+\\\\
+{Exercise 10.9} In the differential semi-gradient $n$-step Sarsa algorithm, the step-size parameter on the average reward, $\beta$, needs to be quite small so that $\bar{R}$ becomes a good long-term estimate of the average reward. Unfortunately, $\bar{R}$ will then be biased by its initial value for many steps, which may make learning inefficient. Alternatively, one could use a sample average of the observed rewards for $\bar{R}$. That would initially adapt rapidly but in the long run would also adapt slowly. As the policy slowly changes, $\bar{R}$ would also change; the potential for such long-term nonstationarity makes sample-average methods ill-suited. In fact, the step-size parameter on the average reward is a perfect place to use the unbiased constant-step-size trick from Exercise 2.7. Describe the specific changes needed to the boxed algorithm for differential semi-gradient $n$-step Sarsa to use this trick.
+\\
+\\
+
+We need to introduce a trace variable and then divide the step size, giving:
+
+\begin{aligned}
+o &\leftarrow o + \beta (1 - o) \\
+\bar{R} &\leftarrow \bar{R} + \frac{\beta}{o}\,\delta
+\end{aligned}.
+
+As a reminder, the sample average would go like $\frac{1}{n}$. While this means
+
+learning is fast at first, later on learning is very slow. Because the distribution 
+
+is non-stationary because of policy improvement, we would eventually be 
+
+making very small, if barely any, improvements towards the optimal policy. 
+
+On the other hand, if we had a small constant step-size parameter, 
+
+this will be good for a long-term estimate, but then $\bar{R}$ will be 
+
+biased by its initial value for a long time because, when we unroll 
+
+the recursion, $(1-\beta^{n})$ will decay very slowly. The unbiased 
+
+constant-step-size trick is thus ideal because it gives us the best of both 
+
+worlds, essentially normalizing the weights so they sum to 1 (while this 
+
+information is in the question, I am simply repeating it with slightly different 
+
+
+wording for my own benefit).
+
+
+
+
+\end{document}

@@ -1,0 +1,559 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{Sutton and Barton Exercises Chapter 12}
+\author{danieltocco0 }
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Chapter 12}
+
+
+\textbf{Exercise 12.1} \quad Just as the return can be written recursively in terms of the first reward and 
+itself one-step later (3.9), so can the $\lambda$-return. Derive the analogous recursive relationship 
+from (12.2) and (12.1).
+\\
+
+\begin{align*}
+G_t^\lambda 
+&= (1-\lambda)\sum_{n=1}^{\infty} \lambda^{n-1} G_t^{(n)} \\
+&= (1-\lambda)\sum_{n=1}^{\infty} \lambda^{n-1} \left[ R_{t+1} + \gamma G_{t+1}^{(n-1)} \right] \\
+&= (1-\lambda)\sum_{n=1}^{\infty} \lambda^{n-1} R_{t+1}
++ (1-\lambda)\sum_{n=1}^{\infty} \lambda^{n-1} \gamma G_{t+1}^{(n-1)} \\
+&= R_{t+1} + \gamma (1-\lambda)\sum_{n=1}^{\infty} \lambda^{n-1} G_{t+1}^{(n-1)} \\
+&= R_{t+1} + \gamma (1-\lambda)\sum_{k=0}^{\infty} \lambda^k G_{t+1}^{(k)} \\
+&= R_{t+1} + \gamma (1-\lambda)\left[ G_{t+1}^{(0)} + \sum_{k=1}^{\infty} \lambda^k G_{t+1}^{(k)} \right] \\
+&= R_{t+1} + \gamma (1-\lambda) V(S_{t+1})
++ \gamma (1-\lambda)\sum_{k=1}^{\infty} \lambda^k G_{t+1}^{(k)} \\
+&= R_{t+1} + \gamma (1-\lambda) V(S_{t+1})
++ \gamma \lambda \left[(1-\lambda)\sum_{k=1}^{\infty} \lambda^{k-1} G_{t+1}^{(k)} \right] \\
+&= R_{t+1} + \gamma (1-\lambda) V(S_{t+1})
++ \gamma \lambda G_{t+1}^\lambda \\
+&= R_{t+1} + \gamma \left[(1-\lambda) V(S_{t+1}) + \lambda G_{t+1}^\lambda \right].
+\end{align*}
+\\\\
+\textbf{Exercise 12.2} \quad The parameter $\lambda$ characterizes how fast the exponential weighting in 
+Figure 12.2 falls off, and thus how far into the future the $\lambda$-return algorithm looks in 
+determining its update. But a rate factor such as $\lambda$ is sometimes an awkward way of 
+characterizing the speed of the decay. For some purposes it is better to specify a time 
+constant, or half-life. What is the equation relating $\lambda$ and the half-life $\tau_\lambda$, the time by 
+which the weighting sequence will have fallen to half of its initial value?
+\\
+\\
+
+\textbf{Solution:}
+
+\text{The weight at step } $n$ \text{ is } $(1-\lambda)\lambda^{n-1}$\text{. The initial value at } $n=1$ \text{ is } $(1-\lambda)$.
+\text{ We want } $\tau_\lambda$ \text{ such that the weight has fallen to half:}
+
+\[
+(1-\lambda)\lambda^{\tau_\lambda - 1} = \frac{1}{2}(1-\lambda)
+\]
+
+\text{Cancel } $(1-\lambda)$\text{:}
+\[
+\lambda^{\tau_\lambda - 1} = \frac{1}{2}
+\]
+
+\text{Take the natural log of both sides:}
+\[
+(\tau_\lambda - 1)\ln\lambda = -\ln 2
+\]
+
+\text{Solve for } $\tau_\lambda$\text{:}
+\[
+\boxed{\tau_\lambda = 1 - \frac{\ln 2}{\ln \lambda}}
+\]
+\\\\
+\textbf{Exercise 12.3} \quad Some insight into how $\text{TD}(\lambda)$ can closely approximate the 
+off-line $\lambda$-return algorithm can be gained by seeing that the latter's error term 
+(in brackets in (12.4)) can be written as the sum of TD errors (12.6) for a single fixed 
+$\mathbf{w}$. Show this, following the pattern of (6.6), and using the recursive relationship 
+for the $\lambda$-return you obtained in Exercise 12.1.
+\\
+\\
+
+\textbf{Solution:}
+
+\text{Recall from (6.6) that for fixed } $\mathbf{w}$\text{:}
+\[
+G_t - \hat{v}(S_t, \mathbf{w}) = \sum_{k=t}^{T-1}\gamma^{k-t}\delta_k
+\]
+
+\text{We want the analogous result for the } $\lambda$\text{-return error. From Exercise 12.1:}
+\[
+G_t^\lambda = R_{t+1} + \gamma\left[(1-\lambda)\hat{v}(S_{t+1},\mathbf{w}) + \lambda G_{t+1}^\lambda\right]
+\]
+
+\text{Subtract } $\hat{v}(S_t, \mathbf{w})$ \text{ from both sides:}
+\[
+G_t^\lambda - \hat{v}(S_t,\mathbf{w}) = R_{t+1} + \gamma(1-\lambda)\hat{v}(S_{t+1},\mathbf{w}) 
++ \gamma\lambda G_{t+1}^\lambda - \hat{v}(S_t,\mathbf{w})
+\]
+
+\text{Add and subtract } $\gamma\hat{v}(S_{t+1},\mathbf{w})$\text{:}
+\[
+= \underbrace{R_{t+1} + \gamma\hat{v}(S_{t+1},\mathbf{w}) - \hat{v}(S_t,\mathbf{w})}_{\delta_t} 
++ \gamma\lambda\bigl(G_{t+1}^\lambda - \hat{v}(S_{t+1},\mathbf{w})\bigr)
+\]
+
+\text{Expanding recursively:}
+\[
+= \delta_t + \gamma\lambda\delta_{t+1} + (\gamma\lambda)^2\delta_{t+2} + \cdots
+\]
+
+\[
+\boxed{G_t^\lambda - \hat{v}(S_t,\mathbf{w}) = \sum_{k=t}^{T-1}(\gamma\lambda)^{k-t}\delta_k}
+\]
+\\\\
+\textbf{Exercise 12.4} \quad Use your result from the preceding exercise to show that, if the 
+weight updates over an episode were computed on each step but not actually used to change 
+the weights ($\mathbf{w}$ remained fixed), then the sum of $\text{TD}(\lambda)$'s weight updates would be 
+the same as the sum of the off-line $\lambda$-return algorithm's updates.
+
+\text{As } $\lambda \to 0$\text{, } $\tau_\lambda \to 1$ \text{ (weights die after one step).}
+\text{ As } $\lambda \to 1$\text{, } $\tau_\lambda \to \infty$ \text{ (weights decay very slowly, approaching Monte Carlo).}
+\\
+\\
+
+\textbf{Solution:}
+
+\text{The } $\text{TD}(\lambda)$ \text{ update at each step with eligibility trace } 
+$\mathbf{z}_t = \sum_{k=0}^{t}(\gamma\lambda)^{t-k}\nabla\hat{v}(S_k,\mathbf{w})$ \text{ is:}
+\[
+\Delta\mathbf{w}_t = \alpha\delta_t\mathbf{z}_t
+\]
+
+\text{The sum of all updates over the episode is:}
+\[
+\sum_{t=0}^{T-1}\alpha\delta_t\mathbf{z}_t 
+= \alpha\sum_{t=0}^{T-1}\delta_t\sum_{k=0}^{t}(\gamma\lambda)^{t-k}\nabla\hat{v}(S_k,\mathbf{w})
+\]
+
+\text{Swap the order of summation:}
+\[
+= \alpha\sum_{k=0}^{T-1}\nabla\hat{v}(S_k,\mathbf{w})\sum_{t=k}^{T-1}(\gamma\lambda)^{t-k}\delta_t
+\]
+
+\text{Apply the result from Exercise 12.3:}
+\[
+\sum_{t=k}^{T-1}(\gamma\lambda)^{t-k}\delta_t = G_k^\lambda - \hat{v}(S_k,\mathbf{w})
+\]
+
+\text{Substituting:}
+\[
+\boxed{\sum_{t=0}^{T-1}\alpha\delta_t\mathbf{z}_t 
+= \alpha\sum_{k=0}^{T-1}\nabla\hat{v}(S_k,\mathbf{w})\bigl(G_k^\lambda - \hat{v}(S_k,\mathbf{w})\bigr)}
+\]
+
+\text{Which is exactly the sum of the offline } $\lambda$\text{-return algorithm's updates — one}
+\text{gradient step per timestep toward the } $\lambda$\text{-return target.}
+\\\\
+\textbf{Exercise 12.5} \quad Several times in this book we have established that returns 
+can be written as sums of TD errors if the value function is held constant. Why is (12.10) 
+another instance of this? Prove (12.10).
+\\
+\\
+
+\textbf{Explanation:}
+
+\text{Equation (12.10) is another instance of the sum-of-TD-errors pattern because each } 
+$\delta_i'$ \text{ treats the weights as locally fixed for that one step — } $\mathbf{w}_{i-1}$ 
+\text{ for the current state and } $\mathbf{w}_i$ \text{ for the next state. The telescoping }
+\text{cancellation still holds step-by-step, just with a slightly different } $\delta'$ 
+\text{ that accounts for the weight update between steps.}
+
+\textbf{Proof of (12.10):}
+
+\text{We want to show:}
+\[
+G_{t:t+k}^\lambda = \hat{v}(S_t, \mathbf{w}_{t-1}) + \sum_{i=t}^{t+k-1}(\gamma\lambda)^{i-t}\delta_i'
+\]
+
+\text{where } $\delta_i' = R_{i+1} + \gamma\hat{v}(S_{i+1}, \mathbf{w}_i) - \hat{v}(S_i, \mathbf{w}_{i-1})$.
+
+\text{Expand the sum by writing out each term:}
+\[
+\sum_{i=t}^{t+k-1}(\gamma\lambda)^{i-t}\delta_i' 
+= \delta_t' + \gamma\lambda\delta_{t+1}' + (\gamma\lambda)^2\delta_{t+2}' + \cdots + (\gamma\lambda)^{k-1}\delta_{t+k-1}'
+\]
+
+\text{Substituting } $\delta_i' = R_{i+1} + \gamma\hat{v}(S_{i+1},\mathbf{w}_i) - \hat{v}(S_i,\mathbf{w}_{i-1})$\text{:}
+
+\[
+= \bigl[R_{t+1} + \gamma\hat{v}(S_{t+1},\mathbf{w}_t) - \hat{v}(S_t,\mathbf{w}_{t-1})\bigr]
+\]
+\[
++ \gamma\lambda\bigl[R_{t+2} + \gamma\hat{v}(S_{t+2},\mathbf{w}_{t+1}) - \hat{v}(S_{t+1},\mathbf{w}_t)\bigr]
+\]
+\[
++ (\gamma\lambda)^2\bigl[R_{t+3} + \gamma\hat{v}(S_{t+3},\mathbf{w}_{t+2}) - \hat{v}(S_{t+2},\mathbf{w}_{t+1})\bigr]
+\]
+\[
++ \cdots + (\gamma\lambda)^{k-1}\bigl[R_{t+k} + \gamma\hat{v}(S_{t+k},\mathbf{w}_{t+k-1}) - \hat{v}(S_{t+k-1},\mathbf{w}_{t+k-2})\bigr]
+\]
+
+\text{Notice the telescoping: the } $+\gamma\hat{v}(S_{i+1},\mathbf{w}_i)$ \text{ term from step } $i$ 
+\text{ cancels with the } $-\hat{v}(S_{i+1}, \mathbf{w}_i)$ \text{ term from step } $i+1$ 
+\text{ (after absorbing the } $\gamma\lambda$ \text{ factor). What remains is:}
+
+\[
+= -\hat{v}(S_t,\mathbf{w}_{t-1}) + \sum_{i=t}^{t+k-1}(\gamma\lambda)^{i-t}R_{i+1} 
++ (\gamma\lambda)^{k-1}\cdot\gamma\hat{v}(S_{t+k},\mathbf{w}_{t+k-1})
+\]
+
+\text{Rearranging:}
+\[
+\hat{v}(S_t,\mathbf{w}_{t-1}) + \sum_{i=t}^{t+k-1}(\gamma\lambda)^{i-t}\delta_i'
+= \sum_{i=t}^{t+k-1}(\gamma\lambda)^{i-t}R_{i+1} + \gamma^k\lambda^{k-1}\hat{v}(S_{t+k},\mathbf{w}_{t+k-1})
+\]
+
+\text{Which matches the definition of } $G_{t:t+k}^\lambda$ \text{ — a } $k$\text{-step } 
+$\lambda$\text{-return bootstrapping at } $S_{t+k}$\text{. } $\square$
+\\\\
+\textbf{Exercise 12.6} \quad Modify the pseudocode for Sarsa($\lambda$) to use dutch traces (12.11) without the other distinctive features of a true online algorithm. Assume linear function approximation and binary features.
+
+\textbf{Solution:}
+\begin{algorithm}
+\caption{Sarsa($\lambda$) with Dutch traces and binary features}
+\begin{algorithmic}[1]
+
+\State \textbf{Input:} a function $\mathcal{F}(s, a)$ returning the set of (indices of) active features for $s, a$
+\State \textbf{Input:} a policy $\pi$
+\State \textbf{Algorithm parameters:} step size $\alpha > 0$, trace decay rate $\lambda \in [0,1]$, small $\varepsilon > 0$
+\State \textbf{Initialize:} $\mathbf{w} = (w_1, \ldots, w_d)^\top \in \mathbb{R}^d$ (e.g., $\mathbf{w} = \mathbf{0}$), $\mathbf{z} = (z_1, \ldots, z_d)^\top \in \mathbb{R}^d$
+
+\For{each episode}
+    \State Initialize $S$
+    \State Choose $A \sim \pi(\cdot|S)$ or $\varepsilon$-greedy according to $\hat{q}(S, \cdot, \mathbf{w})$
+    \State $\mathbf{z} \leftarrow \mathbf{0}$
+    \For{each step of episode}
+        \State Take action $A$, observe $R, S'$
+        \State $\delta \leftarrow R$
+        \For{$i$ in $\mathcal{F}(S, A)$}
+            \State $\delta \leftarrow \delta - w_i$
+            \State $z_i \leftarrow (1 - \alpha z_i) z_i + 1$ \Comment{Dutch trace update}
+        \EndFor
+        \If{$S'$ is terminal}
+            \State $\mathbf{w} \leftarrow \mathbf{w} + \alpha \delta \mathbf{z}$
+            \State Go to next episode
+        \EndIf
+        \State Choose $A' \sim \pi(\cdot|S')$ or $\varepsilon$-greedy according to $\hat{q}(S', \cdot, \mathbf{w})$
+        \For{$i$ in $\mathcal{F}(S', A')$}
+            \State $\delta \leftarrow \delta + \gamma w_i$
+        \EndFor
+        \State $\mathbf{w} \leftarrow \mathbf{w} + \alpha \delta \mathbf{z}$
+        \State $\mathbf{z} \leftarrow \gamma \lambda \mathbf{z}$
+        \State $S \leftarrow S'$; $A \leftarrow A'$
+    \EndFor
+\EndFor
+
+\end{algorithmic}
+\end{algorithm}
+\\\\
+\textbf{Exercise 12.7:} Generalize the three recursive equations (12.18, 12.19, 12.20) 
+to their truncated versions, defining $G_{t:h}^{\lambda s}$ \text{and} $G_{t:h}^{\lambda a}$.
+\\
+\\
+
+\begin{align*}
+G_{t:h} &=
+\begin{cases}
+R_{t+1} + \gamma G_{t+1:h}, & t < h \\
+0, & t = h
+\end{cases} \\[1em]
+G_{t:h}^\lambda &=
+\begin{cases}
+R_{t+1} + \gamma \left[(1-\lambda)V(S_{t+1}) + \lambda G_{t+1:h}^\lambda\right], & t < h \\
+V(S_h), & t = h
+\end{cases} \\[1em]
+v_{t:h}(S_t) &=
+\mathbb{E}\left[
+\begin{cases}
+R_{t+1} + \gamma v_{t+1:h}(S_{t+1}), & t < h \\
+0, & t = h
+\end{cases}
+\right]
+\end{align*}
+\\\\
+\textbf{Exercise 12.8:} Prove that (12.24) becomes exact if the value function does not
+change. To save writing, consider the case of $t = 0$, and use the notation
+$V_k \doteq \hat{v}(S_k, \mathbf{w})$.
+
+\bigskip
+
+\textbf{Solution:} Begin by expanding $G_0^{\lambda s}$ using (12.22):
+
+\begin{equation}
+G_0^{\lambda s} = \rho_0\Big(R_1 + \gamma_1\big((1-\lambda_1)V_1
++ \lambda_1 G_1^{\lambda s}\big)\Big) + (1-\rho_0)V_0
+\end{equation}
+
+Recall the state-based TD error (12.23):
+
+\begin{equation}
+\delta_k^s \doteq R_{k+1} + \gamma_{k+1}V_{k+1} - V_k
+\end{equation}
+
+We can rearrange to get:
+
+\begin{equation}
+R_{k+1} + \gamma_{k+1}V_{k+1} = \delta_k^s + V_k
+\end{equation}
+
+Now substitute back into the expansion of $G_0^{\lambda s}$ and expand $G_1^{\lambda s}$
+recursively. At each step $k$, the $(1 - \rho_k)V_k$ terms and the bootstrapped $V_k$
+terms from $\delta_k^s$ telescope cleanly because the value function is fixed. After full
+recursive expansion, all intermediate $V_k$ terms cancel except $V_0$, leaving:
+
+\begin{equation}
+G_0^{\lambda s} = V_0 + \rho_0 \sum_{k=0}^{\infty} \delta_k^s
+\prod_{i=1}^{k} \gamma_i \lambda_i \rho_i
+\end{equation}
+
+which is exactly (12.24) for $t = 0$. The approximation in (12.24) arises only when the
+value function changes between updates (i.e.\ $\mathbf{w}$ is updated), so that
+$\hat{v}(S_k, \mathbf{w}_t) \neq \hat{v}(S_k, \mathbf{w}_k)$. When $\mathbf{w}$ is
+fixed, the telescoping is exact. $\square$
+
+\bigskip
+
+\textbf{Exercise 12.9:} The truncated version of the general off-policy return is denoted
+$G_{t:h}^{\lambda s}$. Guess the correct equation, based on (12.24).
+
+\bigskip
+
+\textbf{Solution:} By analogy with (12.24), we truncate the infinite sum at horizon $h$:
+
+\begin{equation}
+G_{t:h}^{\lambda s} \doteq \hat{v}(S_t, \mathbf{w}_t) + \rho_t \sum_{k=t}^{h-1}
+\delta_k^s \prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i
+\end{equation}
+
+The structure is identical to (12.24) except the sum runs only to $h-1$ rather than
+$\infty$. Bootstrapping beyond $h$ is handled implicitly through the $\delta_k^s$ terms,
+which already contain $\hat{v}(S_{k+1}, \mathbf{w})$. As with (12.24), this becomes
+exact when the value function does not change. $\square$
+latex\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\\\\
+\section*{Exercise 12.10}
+
+\subsection*{Question}
+
+Prove that (12.27) becomes exact if the value function does not change. To save writing, 
+consider the case of $t = 0$, and use the notation $Q_k = \hat{q}(S_k, A_k, \mathbf{w})$.
+
+\subsection*{Answer}
+
+We wish to show that the eligibility-trace-based update is exact when $\mathbf{w}$ is fixed. 
+We expand $G_0^{\lambda a}$ term by term by unrolling the recursive definition.
+
+The expected TD error at step $k$ is:
+
+$$\delta_k^s = R_{k+1} + \gamma \bar{V}(S_{k+1}) - Q_k$$
+
+where $\bar{V}(S_k) = \sum_a \pi(a|S_k)\hat{q}(S_k, a, \mathbf{w})$ is the expected value 
+under the policy.
+
+\textbf{At $k=0$:} The first term of the unrolled return is:
+
+$$Q_0 + \delta_0^s = Q_0 + R_1 + \gamma \bar{V}(S_1) - Q_0 = R_1 + \gamma \bar{V}(S_1)$$
+
+\textbf{At $k=1$:} Adding the next term $\gamma\lambda\delta_1^s$:
+
+$$R_1 + \gamma \bar{V}(S_1) + \gamma\lambda\delta_1^s 
+= R_1 + \gamma \bar{V}(S_1) + \gamma\lambda\bigl(R_2 + \gamma \bar{V}(S_2) - Q_1\bigr)$$
+
+\textbf{At $k=2$:} Adding the next term $(\gamma\lambda)^2\delta_2^s$:
+
+$$R_1 + \gamma \bar{V}(S_1) + \gamma\lambda\bigl(R_2 + \gamma \bar{V}(S_2) - Q_1\bigr) 
++ (\gamma\lambda)^2\bigl(R_3 + \gamma \bar{V}(S_3) - Q_2\bigr)$$
+
+The general pattern is now clear. At each step $k \geq 1$, the term $-Q_k$ from 
+$\delta_k^s$ and the term $\gamma \bar{V}(S_k)$ from $\delta_{k-1}^s$ appear together. 
+When $\mathbf{w}$ is fixed, we have:
+
+$$\bar{V}(S_k) = \sum_a \pi(a|S_k)\hat{q}(S_k, a, \mathbf{w})$$
+
+and since the action $A_k$ is chosen according to $\pi$, the expected value satisfies 
+$\gamma\bar{V}(S_k) = \gamma Q_k$, so these terms cancel exactly:
+
+$$\gamma \bar{V}(S_k) - \gamma Q_k = 0 \quad \text{for all } k \geq 1$$
+
+This telescoping cancellation propagates through all intermediate steps, leaving only 
+the discounted reward stream and the terminal bootstrap term, which is precisely the 
+definition of the $\lambda$-return $G_0^{\lambda a}$. Therefore (12.27) becomes exact 
+when the value function does not change. \hfill$\square$
+\\\\
+\section*{Exercise 12.11}
+
+\\section*{Exercise 12.11}
+
+\subsection*{Question}
+
+The truncated version of the general off-policy return is denoted $G_{t:h}^{\lambda a}$. 
+Guess the correct equation for it, based on (12.27).
+
+\subsection*{Answer}
+
+By analogy with the state case, the truncated action-value $\lambda$-return is obtained 
+by simply capping the summation at horizon $h$ instead of running to infinity. Recall 
+the full off-policy return (12.27):
+
+$$G_t^{\lambda a} \approx \hat{q}(S_t, A_t, \mathbf{w}_t) + \sum_{k=t}^{\infty} \delta_k^s 
+\prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i$$
+
+where the expected TD error is:
+
+$$\delta_k^s = R_{k+1} + \gamma_{k+1}\bar{V}(S_{k+1}) - \hat{q}(S_k, A_k, \mathbf{w}_k)$$
+
+and $\bar{V}(S_k) = \sum_a \pi(a|S_k)\hat{q}(S_k, a, \mathbf{w})$ is the expected value 
+under the target policy, and $\rho_i = \frac{\pi(A_i|S_i)}{b(A_i|S_i)}$ are the 
+importance sampling ratios for off-policy correction.
+
+The truncated version is then:
+
+$$G_{t:h}^{\lambda a} \doteq \hat{q}(S_t, A_t, \mathbf{w}_t) + \sum_{k=t}^{h-1} \delta_k^s 
+\prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i$$
+
+In the on-policy case $\rho_i = 1$ for all $i$, so the importance sampling ratios 
+disappear and we recover the simpler on-policy form. \hfill$\square$
+\\\\
+\section*{Exercise 12.12}
+
+\subsection*{Question}
+
+Show in detail the steps outlined above for deriving (12.29) from (12.27). Start with 
+the update (12.15), substitute $G_t^{\lambda a}$ from (12.26) for $G_t^{\lambda}$, then 
+follow similar steps as led to (12.25).
+
+\subsection*{Answer}
+
+We begin with the semi-gradient update (12.15) for action values:
+
+$$\mathbf{w}_{t+1} \doteq \mathbf{w}_t + \alpha\left[G_t^{\lambda a} - 
+\hat{q}(S_t, A_t, \mathbf{w}_t)\right]\nabla\hat{q}(S_t, A_t, \mathbf{w}_t)$$
+
+From (12.27), we have:
+
+$$G_t^{\lambda a} - \hat{q}(S_t, A_t, \mathbf{w}_t) = \sum_{k=t}^{\infty} \delta_k^s 
+\prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i$$
+
+where the expected action-based TD error is:
+
+$$\delta_k^s = R_{k+1} + \gamma_{k+1}\bar{V}(S_{k+1}) - \hat{q}(S_k, A_k, \mathbf{w}_k)$$
+
+Substituting into the update and summing over all timesteps:
+
+$$\sum_{t=0}^{\infty}(\mathbf{w}_{t+1} - \mathbf{w}_t) \approx \sum_{t=0}^{\infty} 
+\sum_{k=t}^{\infty} \alpha \nabla\hat{q}(S_t, A_t, \mathbf{w}_t) \delta_k^s 
+\prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i$$
+
+Swapping the order of summation using the rule 
+$\sum_{t=x}^{\infty}\sum_{k=t}^{\infty} = \sum_{k=x}^{\infty}\sum_{t=x}^{k}$:
+
+$$= \sum_{k=0}^{\infty} \alpha \delta_k^s \sum_{t=0}^{k} \nabla\hat{q}(S_t, A_t, 
+\mathbf{w}_t) \prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i$$
+
+This is in the form of a backward-view TD update if the inner sum can be written and 
+updated incrementally as an eligibility trace. We now show this is possible. Define:
+
+$$\mathbf{z}_k \doteq \sum_{t=0}^{k} \nabla\hat{q}(S_t, A_t, \mathbf{w}_t) 
+\prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i$$
+
+We can verify this can be updated incrementally from $\mathbf{z}_{k-1}$:
+
+\begin{align*}
+\mathbf{z}_k &= \sum_{t=0}^{k} \nabla\hat{q}(S_t, A_t, \mathbf{w}_t) 
+\prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i \\
+&= \sum_{t=0}^{k-1} \nabla\hat{q}(S_t, A_t, \mathbf{w}_t) 
+\prod_{i=t+1}^{k} \gamma_i \lambda_i \rho_i + \nabla\hat{q}(S_k, A_k, \mathbf{w}_k) \\
+&= \gamma_k \lambda_k \rho_k \sum_{t=0}^{k-1} \nabla\hat{q}(S_t, A_t, \mathbf{w}_t) 
+\prod_{i=t+1}^{k-1} \gamma_i \lambda_i \rho_i + \nabla\hat{q}(S_k, A_k, \mathbf{w}_k) \\
+&= \gamma_k \lambda_k \rho_k \mathbf{z}_{k-1} + \nabla\hat{q}(S_k, A_k, \mathbf{w}_k)
+\end{align*}
+
+Changing the index from $k$ to $t$, this is exactly the eligibility trace update (12.29):
+
+$$\boxed{\mathbf{z}_t \doteq \gamma_t \lambda_t \rho_t \mathbf{z}_{t-1} + 
+\nabla\hat{q}(S_t, A_t, \mathbf{w}_t)}$$
+
+which is the general accumulating trace update for action values, directly analogous 
+to the state-value trace (12.25), with $\nabla\hat{v}(S_t, \mathbf{w}_t)$ replaced by 
+$\nabla\hat{q}(S_t, A_t, \mathbf{w}_t)$ throughout. \hfill$\square$
+\\\\
+\section*{Exercise 12.13}
+
+\subsection*{Question}
+
+What are the dutch-trace and replacing-trace versions of off-policy eligibility traces 
+for state-value and action-value methods?
+
+\subsection*{Answer}
+
+We take the general accumulating trace updates (12.25) and (12.29) and substitute in 
+the Dutch trace and replacing trace definitions.
+
+\subsubsection*{State-Value Methods}
+
+The general accumulating trace update (12.25) is:
+
+$$\mathbf{z}_t \doteq \rho_t(\gamma_t\lambda_t\mathbf{z}_{t-1} + \nabla\hat{v}(S_t, \mathbf{w}_t))$$
+
+\textbf{Replacing trace} (state-value):
+
+$$z_{t,i} \doteq \rho_t\left(\gamma_t\lambda_t z_{t-1,i} + \begin{cases} 1 & \text{if } x_{t,i} = 1 \\ 0 & \text{otherwise}\end{cases}\right)$$
+
+where $x_{t,i}$ is the $i$-th component of the feature vector at time $t$.
+
+\textbf{Dutch trace} (state-value):
+
+$$\mathbf{z}_t \doteq \rho_t\left(\gamma_t\lambda_t\mathbf{z}_{t-1} + 
+(1 - \alpha\gamma_t\lambda_t\rho_t\mathbf{z}_{t-1}^\top\nabla\hat{v}(S_t, \mathbf{w}_t))
+\nabla\hat{v}(S_t, \mathbf{w}_t)\right)$$
+
+\subsubsection*{Action-Value Methods}
+
+The general accumulating trace update (12.29) is:
+
+$$\mathbf{z}_t \doteq \gamma_t\lambda_t\rho_t\mathbf{z}_{t-1} + \nabla\hat{q}(S_t, A_t, \mathbf{w}_t)$$
+
+\textbf{Replacing trace} (action-value):
+
+$$z_{t,i} \doteq \gamma_t\lambda_t\rho_t z_{t-1,i} + \begin{cases} 1 & \text{if } x_{t,i} = 1 \\ 0 & \text{otherwise}\end{cases}$$
+
+\textbf{Dutch trace} (action-value):
+
+$$\mathbf{z}_t \doteq \gamma_t\lambda_t\rho_t\mathbf{z}_{t-1} + 
+(1 - \alpha\gamma_t\lambda_t\rho_t\mathbf{z}_{t-1}^\top\nabla\hat{q}(S_t, A_t, \mathbf{w}_t))
+\nabla\hat{q}(S_t, A_t, \mathbf{w}_t)$$
+
+In all cases the substitution is straightforward: the Dutch and replacing trace variants 
+modify how the current gradient term is added to the decayed previous trace, while the 
+off-policy correction via $\rho_t$ carries through identically from the accumulating 
+case. For action-value methods, $\nabla\hat{v}(S_t, \mathbf{w}_t)$ is replaced 
+throughout by $\nabla\hat{q}(S_t, A_t, \mathbf{w}_t)$. \hfill$\square$
+\\\\
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+

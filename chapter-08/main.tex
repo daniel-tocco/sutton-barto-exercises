@@ -1,0 +1,111 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sutton and Barton Exercises Chapter 8}
+\author{danieltocco0 }
+\date{December 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Chapter 8}
+\textit{Exercise 8.1} The nonplanning method looks particularly poor in Figure 8.3 because it is
+a one-step method; a method using multi-step bootstrapping would do better. Do you
+think one of the multi-step bootstrapping methods from Chapter 7 could do as well as
+the Dyna method? Explain why or why not.
+\\
+\\
+
+In short, no. Only for states that are visited can be updated. To take the 
+
+extreme of Monte Carlo, for example, only n visited states would be updated. 
+
+1700 - n states would still need to be updated thereafter.
+\\\\
+\textit{Exercise 8.2} Why did the Dyna agent with exploration bonus, Dyna-Q+, perform
+better in the first phase as well as in the second phase of the blocking and shortcut
+experiments? 
+\\
+\\
+
+Due to the r + $\kappa\sqrt{\tau}$ term, Dyna-Q+ is more explorative than Dyna. 
+
+It is expected Dyna-Q+ would thus find the optimal path faster for both 
+
+phases. Similarily to phase two, Dyna in phase one may possibly even find 
+
+a sub-optimal path from which it cannot escape.
+\\\\
+\textit{Exercise 8.3} Careful inspection of Figure 8.5 reveals that the difference between Dyna-Q+
+and Dyna-Q narrowed slightly over the first part of the experiment. What is the reason
+for this?
+\\
+\\
+
+Because Dyna and Dyna-Q+ both converge to an optimal solution, but 
+
+Dyna-Q+ retains it's stronger exploration. To elaborate when Dyna-Q+ 
+
+explores a bad (relative to phase) path, Dyna-Q is still behaving optimally. 
+
+This closes the gap until Dyna-Q goes back to it's optimal path. 
+\\\\
+\textit{Exercise 8.5} How might the tabular Dyna-Q algorithm shown on page 164 be modified
+to handle stochastic environments? How might this modification perform poorly on
+changing environments such as considered in this section? How could the algorithm be
+modified to handle stochastic environments and changing environments? 
+\\
+\\
+
+In step e), use the expected reward based on the samples we have. The 
+
+problem here is that the environment could change, thus changing our 
+
+expectation. The expectation may very slowly update, however. What we
+
+want to do is add a recency weighing-term like: $P_{new} = (1 - \beta) * P_{old} + \beta *$ 
+
+indicator$(new_{transition})$ for the probabilities, or something like Dyna-Q+,
+
+where, again, we encourage the agent to try long untested actions which 
+
+would discover changes in the environment.
+\\\\
+\textit{Exercise 8.6} The analysis above assumed that all of the b possible next states were
+equally likely to occur. Suppose instead that the distribution was highly skewed, that
+some of the b states were much more likely to occur than most. Would this strengthen or
+weaken the case for sample updates over expected updates? Support your answer.
+\\
+\\
+
+It would strengthen the case for sample updates. Regardless of the
+
+distribution, expected updates must account for ALL transitions. 
+
+A skewed distribution for sample updates would reduce the variance, 
+
+thus making it even better.
+\\\\
+\textit{Exercise 8.7} Some of the graphs in Figure 8.8 seem to be scalloped in their early portions,
+particularly the upper graph for b = 1 and the uniform distribution. Why do you think
+this is? What aspects of the data shown support your hypothesis? 
+\\
+\\
+
+Because for b = 1, you can only possibly transition to one state. The starting 
+
+values are far from their actual values, and combine this with the 
+
+stochasticity of action-selection (even if there are only two, but
+
+reward dynamics must be taken into account), you can undershoot or 
+
+overshoot by a good amount at the start. Over many episodes, variance 
+
+will decrease, hence the curve smoothens. Following similar logic, 
+
+larger branching factors will have less variance, hence they don't 
+
+scallop to the same extent.
+\end{document}

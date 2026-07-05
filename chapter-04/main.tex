@@ -1,0 +1,222 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sutton and Barton Exercises Chapter 4}
+\author{danieltocco0 }
+\date{October 2025}
+\usepackage{imakeidx}
+\makeindex
+\usepackage{amsmath}
+\begin{document}
+\section{Chapter 4}
+\textit{Exercise 4.1} In Example 4.1, if $\pi$ is the equiprobable random policy, what is $q_{\pi}(11 , down )$?
+What is $q_{\pi}(7, down)?$ \\
+\\
+
+For $q_{\pi}(11 , down )$, we transition to S' = $S^{+}$ with reward -1 and a future 
+
+expected reward of 0. Thus, q $q_{\pi}(11 , down )$ = -1.\\
+
+For $q_{\pi}(7, down)$, we transition to S' = 11 with reward -1 and a future
+
+expected reward of $-\gamma14$. $\gamma$ is just 1. Thus, $q_{\pi}(7, down)? = -15.$ \\
+\\\\
+\textit{Exercise 4.2} Suppose a new state 15 is added to the gridworld just below
+state 13, and its actions, left, up, right, and down, take the agent to states 12, 13, 14,
+and 15, respectively. Assume that the transitions from the original states are unchanged.
+What, then, is $v_{\pi}(15)$ for the equiprobable random policy? Now suppose the dynamics of
+state 13 are also changed, such that action down from state 13 takes the agent to the new
+state 15. What is $v_{\pi}(15)$ for the equiprobable random policy in this case?\\
+\\
+
+$v_{\pi}(15)$ = -1 + $\frac{1}{4}(-22 - 20 - 14 + v_{\pi}(15))$ $=>$
+
+$v_{\pi}(15)$ = $\frac{4}{3}(-1 - 14) = -20$. \\
+
+For part two of this question, we need to look at $v_{\pi}(13)$ and $v_{\pi}(15)$: 
+
+$v_{\pi}(13)$ = -1 + $\frac{1}{4}(-22 - 20 - 14 + v_{\pi}(15)) =>$
+
+$v_{\pi}(13) - \frac{1}{4}v_{\pi}(15) = -15\\
+
+and from the first part of the question we have:
+
+$\frac{3}{4}v_{\pi}(15) = -1 + \frac{1}{4}(-22 + v_{\pi}(13) - 14) =>$
+
+$\frac{3}{4}v_{\pi}(15) - \frac{1}{4}v_{\pi}(13) = -10.\\
+
+This is a system of linear equations, and doing the math out:\\
+
+$\frac{4}{5}v_{\pi}(15) - 4 - \frac{1}{4}v_{\pi}(15) = -15 =>$
+
+$v_{\pi}(15) = -20$.
+
+Intuitively, this makes sense as the dynamics and returns are the same from 
+
+each state $v_{\pi}(9)$ also yields -20; you can even simply retrace the arrows on 
+
+the right hand side under "optimal policy" and the arrows in terms of 
+
+direction and steps until termination are the same.\\
+\\\\
+\textit{Exercise 4.3} What are the equations analogous to (4.3), (4.4), and (4.5) for the action-value function $q_{\pi}$ and its successive approximation by a sequence of functions $q_{0}, q_{1}, q_{2}, . . . ?
+\\
+
+4.3) $q_{\pi}(s, a) = \mathbb{E}[R_{t+1} + \Sigma_{a_{t+1}}\pi(a_{t+1}|s_{t+1})\gamma q_{\pi}(s_{t+1}, a_{t+1})|s, a]$
+
+4.4) $q_{\pi}(s, a) = \Sigma_{s', r'}p(s', r|a, s)[r + \Sigma_{a'}\pi(a'|s')\gamma q_{\pi}(s', a')]$
+
+4.5) $q_{k+1}(s, a) = \Sigma_{s', r'}p(s', r|a, s)[r + \Sigma_{a'}\pi(a'|s')\gamma q_{k}(s', a')]$
+\\\\
+\textit{Exercise 4.4} The policy iteration algorithm on page 80 has a subtle bug in that it may
+never terminate if the policy continually switches between two or more policies that are
+equally good. This is ok for pedagogy, but not for actual use. Modify the pseudocode so
+that convergence is guaranteed. 
+\\
+
+I think there are a few ways to fix this. One way would to see if the policy 
+
+values themselves are within some some small threshold $\theta_{thresh}$ 
+
+despite following different actions. If they are within the threshold, 
+
+then just set policy-stable = true. The other way I am thinking is to 
+
+look back two actions. That is, since we are seeing if action a is better 
+
+than a-1, then we can see if action a-2 is equal to action a, and if yes, 
+
+we know we are looping between these two actions and can set 
+
+policy-stable = true.
+\\\\
+\textit{Exercise 4.5} How would policy iteration be defined for action values? Give a complete
+algorithm for computing $q_{*}$, analogous to that on page 80 for computing $v_{*}$. Please pay
+special attention to this exercise, because the ideas involved will be used throughout the
+rest of the book. 
+\\
+
+1. Policy is arbitrarily initiated as before\\
+
+2. Policy Evaluation\\
+
+\indent Loop:\\
+\indent \indent $\Delta \leftarrow 0$\\
+\indent \indent Loop for each s $\in$ S:\\
+\indent \indent \indent $\textit{q} \leftarrow Q(s,a)$\\
+\indent \indent \indent $Q(s,a) \leftarrow \Sigma_{s', r'}p(s', r'|s, a)[r + \gamma \Sigma_{a'}\pi(a'|s')Q(s', a')]$\\
+\indent \indent \indent  $\delta \leftarrow max(\Delta|\textit{q} - Q(s,a)|)$\\
+\indent until $\Delta < \theta$(a small positive number determining the accuracy of estimation) \\
+
+3. Policy Improvement\\
+
+$\textit{policy-stable} \leftarrow \textit{true}$\\
+\indent For each $s \in S:$\\
+\indent \indent $\textit{old-action} \leftarrow \pi_{s} \\$
+\indent \indent $\pi(s) \leftarrow argmax_{a}\Sigma_{s', r'}p(s', r'|s, \pi(s,a))[r + \gamma \Sigma_{a'}\pi(a'|s')Q(s', a')]$\\
+\indent \indent If old-action $\neq \pi(s,a)$, the policy-stable $\leftarrow \textit{false}$\\
+\indent If $\textit{policy-stable}$, then stop and return $Q \approx Q_{*}$ and $\pi \approx \pi_{*}$; else go to 2.
+\\\\
+\textit{Exercise 4.6} Suppose you are restricted to considering only policies that are $\epsilon$-soft,
+meaning that the probability of selecting each action in each state, s, is at least $\frac{\epsilon}{|A(s)|}$.
+Describe qualitatively the changes that would be required in each of the steps 3, 2, and 1,
+in that order, of the policy iteration algorithm for $v_{*}$ on page 80. 
+\\
+
+Every action now has a minimum chance of being selected given by $\frac{\epsilon}{|A(s)|}$. 
+
+Policy is now stochastic. The policy can be arbitrarily initialized as
+
+before, but control statements must be implemented so as to guarantee the 
+
+minimum probability for all actions and account for this on other actions so
+
+that $P_{total} = 1$ still. The new policy evaluation and improvement will be:\\
+
+2. Policy Evaluation\\
+
+\indent Loop:\\
+\indent \indent $\Delta \leftarrow 0$\\
+\indent \indent Loop for each s $\in$ S:\\
+\indent \indent \indent $\textit{v} \leftarrow V(s)$\\
+\indent \indent \indent $V(s) \leftarrow \Sigma_{a}\pi(a|s)\Sigma_{s', r'}p(s', r'|s, a)[r + \gamma V(s')]]$\\
+\indent \indent \indent  $\delta \leftarrow max(\Delta|\textit{V} - V(s)|)$\\
+\indent until $\Delta < \theta$(a small positive number determining the accuracy of estimation) \\
+
+3. Policy Iteration\\
+
+$\textit{policy-stable} \leftarrow \textit{true}$\\
+\indent For each $s \in S:$\\
+\indent \indent $\textit{old-action} \leftarrow \pi_{s}$ \\
+\[ \pi(s) = \begin{cases} 
+          $1 - \epsilon + \frac{\epsilon}{|A(s)|}$, if $a = argmax_{a}$V(s)\\$
+          $\frac{\epsilon}{|A(s)|}$, otherwise
+       \end{cases}
+    \]
+\indent \indent If old-action $\neq \pi(s)$, the policy-stable $\leftarrow \textit{false}$\\
+\indent If $\textit{policy-stable}$, then stop and return $V \approx V_{*}$ and $\pi \approx \pi_{*}$; else go to 2.\\
+
+In words, when we find the argmax(a) for state s, we no longer can select 
+
+a with probability 1. Instead, we must assign it the max probability under 
+
+our $\epsilon$-soft constraint. For example, if there are five states total, $\frac{\epsilon}{5}$ must be 
+
+the minimum probability assigned to each state. Now once argmax(a) is 
+
+found and we know p(a) is no longer 1, and since we still want to maximize 
+
+p(a), we subtract: 1 - $\epsilon$ + $\frac{\epsilon}{5} = 1 - \frac{4}{5}\epsilon$. $\frac{4}{5}\epsilon$ is the total probability of actions 
+
+not including argmax(a) under our $\epsilon$-soft constraint.
+\\\\
+\textit{Exercise 4.8} Why does the optimal policy for the gambler’s problem have such a curious
+form? In particular, for capital of 50 it bets it all on one flip, but for capital of 51 it does
+not. Why is this a good policy?. 
+\\
+
+$P_{h} = 0.4$, so if you bet $1.00$ each round, you are expected to slowly lose. 
+
+Hence, the $50.00$ mark acts as a threshold: if you are at $50.00$, you bet 
+
+everything to minimize the amount of rounds played to win and thus 
+
+maximize the probability of winning. Now if you are above $50.00$ but below 
+
+$75.00$, you have the threshold of $50.00$ to fall back on. You thus want to
+
+stake anything that you could reach to $75.00$ with but keep you at or above 
+
+$50.00$, which is the reason for the small triangular "tics", which is the 
+
+class of optimal policies referred to in the above paragraph (for example, 
+
+at $65$, you could arbitrarily stake $10$ or $15$). For the spike at $75$, 
+
+the logic is similar; we can win by betting $25.00$, but if we lose we fall 
+
+back to $50$ (and if we are above $75$ we can stake arbitrarily to win, but 
+
+if we lose keep ourselves at or above $75$). Likewise for $25$: we bet $25.00$ 
+
+on the chance we jump to $50.00$ and then bet $50.00$ if we make it (and again, 
+
+the tics are because if we are under $25$ we can arbitrarily stake to get up to 
+
+$25$, and if we are above $25$ but below $50$, we can arbitrarily stake to get 
+
+up to $50$ but stay at or above $25$ if we lose). To drive the point home again, 
+
+we want to minimize the expected number of rounds played to win.
+\\\\
+\textit{Exercise 4.10} What is the analog of the value iteration update (4.10) for action values,
+q k+1 (s, a)?
+\\
+
+$q_{k+1}(s, a) = \Sigma_{s', r'}p(s', r'|s, a)[r + \gamma max_{a'}q_{k}(s', a')]$
+
+\maketitle
+
+\section{Introduction}
+
+\end{document}

@@ -1,0 +1,89 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{Sutton and Barton Exercises Chapter 17}
+\author{danieltocco0 }
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Chapter 17}
+
+
+
+\title{Exercise 17.1}
+\date{}
+
+\begin{document}
+\maketitle
+
+\textbf{Exercise 17.1.} This section has presented options for the discounted case, but discounting is arguably inappropriate for control when using function approximation (Section 10.4). What is the natural Bellman equation for a hierarchical policy, analogous to (17.4), but for the average reward setting (Section 10.3)? What are the two parts of the option model, analogous to (17.2) and (17.3), for the average reward setting?
+
+\bigskip
+\hrule
+\bigskip
+
+\textbf{Solution.}
+
+\subsection*{Why discounting is problematic with function approximation}
+
+In the discounted setting with function approximation, the discount factor $\gamma < 1$ introduces a non-uniform weighting over states that depends on their distance from the start of an episode. This interacts badly with function approximation, where different states share parameters: states visited earlier in an episode are effectively weighted differently than states visited later, in an arbitrary way that can distort the learned value function. The average reward setting avoids this by weighting all timesteps equally, which is more compatible with function approximation.
+
+\subsection*{Average reward Bellman equation for a hierarchical policy}
+
+Recall the average reward Bellman equation for primitive actions:
+\[
+v_\pi(s) = \sum_a \pi(a \mid s) \sum_{s', r} p(s', r \mid s, a)\bigl[r - r(\pi) + v_\pi(s')\bigr],
+\]
+where $r(\pi)$ is the average reward per primitive timestep under policy $\pi$.
+
+With options, a single option $\omega$ may execute for many primitive timesteps before terminating. Let $\tau(s, \omega)$ denote the expected number of primitive timesteps the option runs when initiated in state $s$. Since $r(\pi)$ is a per-timestep average reward, executing one option consumes $\tau(s, \omega)$ timesteps, so the average reward ``used up'' by one option execution is $r(\pi) \cdot \tau(s, \omega)$.
+
+The natural Bellman equation for a hierarchical policy in the average reward setting is therefore:
+\[
+\boxed{v_\pi(s) = \sum_{\omega \in \Omega(s)} \pi(\omega \mid s) \left[ r(s, \omega) - r(\pi)\cdot\tau(s,\omega) + \sum_{s'} p(s' \mid s, \omega)\, v_\pi(s') \right],}
+\]
+for all $s \in \mathcal{S}$. Note that $\gamma$ does not appear explicitly, just as in the primitive-action average reward case.
+
+\subsection*{The option model in the average reward setting}
+
+The option model now consists of \emph{three} components:
+
+\textbf{(1) Expected reward} $r(s, \omega)$: the expected total reward accumulated while the option executes, starting from state $s$ under policy $\pi_\omega$ until termination according to $\gamma_\omega$. Learned by a GVF with cumulant $C_t = R_t$, policy $\pi_\omega$, and termination function $\gamma_\omega(s)$ (no multiplicative $\gamma$):
+\[
+v_{\pi_\omega,\, \gamma_\omega,\, R}(s) = r(s, \omega).
+\]
+
+\textbf{(2) State-transition distribution} $p(s' \mid s, \omega)$: the probability of terminating in state $s'$ given the option was initiated in state $s$. Unchanged from the discounted case. One GVF per target termination state $s'$, with cumulant:
+\[
+C_t = \bigl(1 - \gamma_\omega(S_t)\bigr)\,\mathbf{1}_{S_t = s'},
+\]
+policy $\pi_\omega$, and termination function $\gamma_\omega(s)$:
+\[
+v_{\pi_\omega,\, \gamma_\omega,\, C}(s) = p(s' \mid s, \omega).
+\]
+
+\textbf{(3) Expected duration} $\tau(s, \omega)$: the expected number of primitive timesteps the option runs before terminating. New component required in the average reward setting. Learned as a GVF with cumulant $C_t = 1$ at every timestep, policy $\pi_\omega$, and termination function $\gamma_\omega(s)$:
+\[
+v_{\pi_\omega,\, \gamma_\omega,\, \mathbf{1}}(s) = \tau(s, \omega).
+\]
+
+\subsection*{Summary}
+
+The key differences from the discounted setting are:
+\begin{itemize}
+  \item $\gamma$ is removed from the Bellman equation and from the GVF termination functions (replaced by $\gamma_\omega$ alone).
+  \item The discounted reward term $r(s,\omega)$ is replaced by the differential term $r(s,\omega) - r(\pi)\cdot\tau(s,\omega)$.
+  \item The option model gains a third component $\tau(s,\omega)$, the expected option duration.
+  \item The transition model $p(s' \mid s, \omega)$ is unchanged.
+\end{itemize}
+
+\end{document}

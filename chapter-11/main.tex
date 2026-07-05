@@ -1,0 +1,122 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sutton and Barton Exercises Chapter 11}
+\author{danieltocco0 }
+\date{March 2026}
+
+\documentclass{article}
+\usepackage{amsmath}
+\begin{document}
+
+
+\maketitle
+
+\section{Chapter 11}
+
+\textit{Exercise 11.1} Convert the equation of n-step on-policy TD (7.9) to semi-gradient form.
+Give accompanying definitions of the return for both the episodic and continuing cases.
+\\
+\\
+
+We are pretty much just rewriting things in terms of function approximation...
+
+\[
+\mathbf{w}_{t+n} \leftarrow \mathbf{w}_{t+n-1} + \alpha \, \rho_{t:t+n-1}
+\bigl[G_{t:t+n} - \hat{v}(S_t, \mathbf{w}_{t+n-1})\bigr]
+\nabla \hat{v}(S_t, \mathbf{w}_{t+n-1})
+\]
+
+where the return is defined as:
+
+\textit{Episodic:}
+\[
+G_{t:t+n} \doteq R_{t+1} + \gamma R_{t+2} + \cdots + \gamma^{n-1} R_{t+n}
++ \gamma^n \hat{v}(S_{t+n}, \mathbf{w}_{t+n-1})
+\]
+
+\textit{Continuing:}
+\[
+G_{t:t+n} \doteq R_{t+1} - \bar{R}_t + R_{t+2} - \bar{R}_{t+1}
++ \cdots + R_{t+n} - \bar{R}_{t+n-1}
++ \hat{v}(S_{t+n}, \mathbf{w}_{t+n-1})
+\]
+\\\\
+\textbf{Exercise 11.2} \quad The semi-gradient form of $n$-step $Q(\sigma)$ is:
+\\
+\\
+
+\[
+\mathbf{w}_{t+n} \leftarrow \mathbf{w}_{t+n-1} + \alpha
+\bigl[G_{t:t+n} - \hat{q}(S_t, A_t, \mathbf{w}_{t+n-1})\bigr]
+\nabla \hat{q}(S_t, A_t, \mathbf{w}_{t+n-1})
+\]
+
+where the $Q(\sigma)$ return is:
+
+\textit{Episodic:}
+\[
+G_{t:t+n} \doteq \hat{q}(S_t, A_t, \mathbf{w}) + \sum_{k=t}^{t+n-1} \delta_k
+\prod_{i=t+1}^{k} \Bigl(\gamma \sigma_i \rho_i + \gamma(1-\sigma_i)\pi(A_i|S_i)\Bigr)
+\]
+
+\textit{Continuing:}
+\[
+G_{t:t+n} \doteq \hat{q}(S_t, A_t, \mathbf{w}) + \sum_{k=t}^{t+n-1} \delta_k
+\prod_{i=t+1}^{k} \Bigl(\gamma \sigma_i \rho_i + \gamma(1-\sigma_i)\pi(A_i|S_i)\Bigr)
+\]
+
+where in the continuing case the TD error uses the differential form:
+\[
+\delta_k = R_{k+1} - \bar{R} + \hat{q}(S_{k+1}, A_{k+1}, \mathbf{w})
+- \hat{q}(S_k, A_k, \mathbf{w})
+\]
+\\\\
+\textbf{Exercise 11.4} Prove (11.24).:
+\\
+\\
+
+
+\textbf{Derivation:}
+
+\text{Start with the definition of } $\overline{RE}$:
+
+\[
+\overline{RE}(\mathbf{w}) = \mathbb{E}\left[(G_t - \hat{v}(S_t, \mathbf{w}))^2\right]
+\]
+
+\text{Add and subtract } $v_\pi(S_t)$ \text{ inside the bracket:}
+
+\[
+= \mathbb{E}\left[(G_t - v_\pi(S_t) + v_\pi(S_t) - \hat{v}(S_t, \mathbf{w}))^2\right]
+\]
+
+\text{Let } $a = G_t - v_\pi(S_t)$ \text{ and } $b = v_\pi(S_t) - \hat{v}(S_t, \mathbf{w})$\text{, expand } $(a+b)^2$:
+
+\[
+= \mathbb{E}\left[(G_t - v_\pi(S_t))^2\right] 
++ 2\mathbb{E}\left[(G_t - v_\pi(S_t))(v_\pi(S_t) - \hat{v}(S_t,\mathbf{w}))\right] 
++ \mathbb{E}\left[(v_\pi(S_t) - \hat{v}(S_t,\mathbf{w}))^2\right]
+\]
+
+\text{The cross term vanishes because } $\mathbb{E}[G_t - v_\pi(S_t) \mid S_t] = 0$ 
+\text{ by definition of } $v_\pi(S_t) = \mathbb{E}[G_t \mid S_t]$:
+
+\[
+\mathbb{E}\left[(G_t - v_\pi(S_t))(v_\pi(S_t) - \hat{v}(S_t,\mathbf{w}))\right]
+= \mathbb{E}\left[\mathbb{E}[G_t - v_\pi(S_t)\mid S_t] \cdot (v_\pi(S_t) - \hat{v}(S_t,\mathbf{w}))\right] = 0
+\]
+
+\text{What remains:}
+
+\[
+\overline{RE}(\mathbf{w}) 
+= \mathbb{E}\left[(v_\pi(S_t) - \hat{v}(S_t,\mathbf{w}))^2\right] 
++ \mathbb{E}\left[(G_t - v_\pi(S_t))^2\right]
+= \overline{VE}(\mathbf{w}) + \mathbb{E}\left[(G_t - v_\pi(S_t))^2\right]
+\]
+
+\text{The second term is the variance of } $G_t$ \text{ around the true value } $v_\pi(S_t)$
+\text{ and does not depend on } $\mathbf{w}$\text{. Therefore } $\overline{RE}$ \text{ and } $\overline{VE}$ 
+\text{ share the same optimal parameter vector } $\mathbf{w}^*$.
+\end{document}
